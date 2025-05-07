@@ -1,0 +1,88 @@
+import { FastifyInstance } from "fastify";
+const bcrypt = require("bcrypt");
+import { prisma } from '../utils/prisma';
+
+
+export default async function authRoutes(app: FastifyInstance) {
+  /* <-- Register route --> */
+  app.post("/register", {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['email', 'password', 'username'],
+        properties: {
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string', minLength: 6 }, 
+          username: { type: 'string', minLength: 3 },
+        }
+      }
+    }
+    }, async (request, reply) => {
+        const { email, password, username } = request.body as { email: string, password: string, username: string};
+        
+          try {
+            const [existingMail, existingUser] = await Promise.all([
+              prisma.user.findUnique({ where: { email } }),
+              prisma.user.findUnique({ where: { username } }),
+            ]);
+            if (existingMail) return reply.status(400).send({ statusCode: 400, error: "Email already registered" });
+            if (existingUser)return reply.status(400).send({ statusCode: 400, error: "Username already registered" });
+      
+            const hashedPassword = await bcrypt.hash(password, 10);
+          
+            const user = await prisma.user.create({
+              data: {
+                email,
+                password: hashedPassword,
+                username,
+              },
+            });
+            const token = app.jwt.sign({ id: user.id, email: user.email });
+            reply.status(201).send({
+              statusCode: 201, 
+              message: "User registred successefully",
+              token,
+              user: { id: user.id, email: user.email, username: user.username } 
+            });
+          } 
+          catch (err) {
+            return reply.status(500).send({ statusCode: 500, error: "Registration failed" });
+          }
+  })
+  /* <-- Register route --> */
+  
+  /* <-- Login route --> */
+  app.post("/login", {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', format: 'email' },
+          password: {type: 'string', minLength: 6 },
+        }
+      }
+    }
+   }, async (request, reply) => {
+    const { email, password } = request.body as {email: string, password: string};
+    
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user)
+      return reply.status(400).send({ statusCode: 400, error: "Email or password is incorrect" });
+    
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return reply.status(401).send({ statusCode: 401, error: "Email or password is incorrect" });
+    
+    const token = app.jwt.sign({ id: user.id, email: user.email });
+    return reply.status(202).send({ 
+      statusCode: 202,
+      message: "Login successeful",
+      token,
+      user: { id: user.id, email: user.email, username: user.username }
+      });
+    })
+  /* <-- Login route --> */
+  
+  /* <-- Logout route --> */
+  /* <-- Logout route --> */
+}
