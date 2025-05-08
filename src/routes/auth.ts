@@ -74,7 +74,7 @@ export default async function authRoutes(app: FastifyInstance) {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return reply.status(401).send({ statusCode: 401, error: "Email or password is incorrect" });
     
-    const token = app.jwt.sign({ id: user.id, email: user.email }, { expiresIn: '15m' });
+    const token = app.jwt.sign({ id: user.id, email: user.email }, { expiresIn: '15s' });
     
     await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
     const refreshToken = crypto.randomUUID();
@@ -108,19 +108,19 @@ export default async function authRoutes(app: FastifyInstance) {
   app.post("/refresh", async (request, reply) => {
     const token = request.cookies.refreshToken; /* Hada li kain fl cookie li siftna */
     if (!token)
-      reply.status(401).send({ error: "No refresh token found" });
+      return reply.status(401).send({ error: "No refresh token found" });
     
     const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
     if (!storedToken || storedToken.expiresAt < new Date())
       return reply.status(401).send({ error: "Invalid or expired refresh token" });
         
-    const user = prisma.user.findUnique({ where: { id: storedToken.userId } });
-    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username }, { expiresIn: '15m' });
+    const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
+    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username }, { expiresIn: '15s' });
     
     /* todo: 4adir rotate refresh token hna blati 4er nchecki wa7ed l3aiba */
     await prisma.refreshToken.delete({ where: { token } });
     const newRefreshToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() * 24 * 3600 * 1000);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000);
     await prisma.refreshToken.create({
       data: {
         token: newRefreshToken,
@@ -137,10 +137,22 @@ export default async function authRoutes(app: FastifyInstance) {
     });
   
     return reply.send({ message: "Token refreshed", token: newAccessToken });
-  })
+    })
   /* <-- Refresh route --> */
   
   /* <-- Logout route --> */
+  app.post("/logout", async (request, reply) => {
+    const token = request.cookies.refreshToken;
+    if (token)
+      await prisma.refreshToken.deleteMany({ where: { token } });
+    
+    reply.clearCookie("refreshToken", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    return reply.send({ message: "Logout successful" });
+   })
   /* <-- Logout route --> */
 }
-
