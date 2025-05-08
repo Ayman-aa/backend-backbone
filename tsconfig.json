@@ -6,10 +6,10 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "outDir": "./dist",  // This is the key setting for output directory
-    "rootDir": "./src",  // Ensure TypeScript only compiles files in src
-    "removeComments": true  // Optional: removes comments from compiled JS
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true
   },
-  "include": ["src/**/*"],  // Only include files in src directory
-  "exclude": ["node_modules"]  // Exclude node_modules from compilation
+  "include": ["src/**/*"], 
+  "exclude": ["node_modules"]
 }

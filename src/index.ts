@@ -1,18 +1,20 @@
 import Fastify, { fastify } from 'fastify';
 import authRoutes from './routes/auth';
 const dotenv = require("dotenv");
+import cookie from '@fastify/cookie'
 
 dotenv.config();
 
 import jwtPlugin from './plugins/jwt';
 // import oauth2Plugin from './plugins/oauth2';
-// import protectedRoutes from './routes/protected';
+import protectedRoutes from './routes/protected';
 
 const app = Fastify();
 
 app.register(jwtPlugin);
+app.register(cookie, { secret: process.env.COOKIE_SECRE });
 // await app.register(oauth2Plugin);
-// await app.register(protectedRoutes, { prefix: '/protected' });
+app.register(protectedRoutes, { prefix: '/protected' });
 app.register(authRoutes, { prefix: '/auth' });
 
 app.listen({ port: 3000 }, err => {
