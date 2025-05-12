@@ -6,7 +6,7 @@ export default fp(async function (fastify: FastifyInstance) {
   fastify.register(jwt, {
     secret: process.env.JWT_SECRET as string,
   });
-  fastify.decorate("authenticate", async function (req: any, reply: any) { / *Added type annotation  because of alerts */
+  fastify.decorate("authenticate", async function (req: any, reply: any) {  /*Added type annotation  because of alerts */
     try {
       await req.jwtVerify();
       // reply.code(201).send();

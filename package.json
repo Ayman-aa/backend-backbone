@@ -4,6 +4,7 @@
     "watch": "tsc-watch --onSuccess 'node dist/index.js'"
   },
   "dependencies": {
+    "@fastify/cors": "^11.0.1",
     "@fastify/jwt": "^9.1.0",
     "@fastify/oauth2": "^8.1.2",
     "@prisma/client": "^6.7.0",
