@@ -8,20 +8,20 @@ import { env } from './config/env';
 
 import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
-import protectedRoutes from './modules/users/profile.routes';
+import userRoutes from './modules/users/profile.routes';
 
 const app = Fastify();
 
 app.register(cors, {
   origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
 });
 
 app.register(jwtPlugin);
 app.register(cookie, { secret: env.COOKIE_SECRET });
 app.register(oauth2Plugin);
-app.register(protectedRoutes, { prefix: '/protected' });
+app.register(userRoutes, { prefix: '/profile' });
 app.register(authRoutes, { prefix: '/auth' });
 
 app.listen({ port: 3000 }, err => {
