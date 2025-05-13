@@ -1,5 +1,6 @@
 import Fastify, { fastify } from 'fastify';
 import authRoutes from './modules/auth/auth';
+import fastifyMultipart from "@fastify/multipart";
 
 import cookie from '@fastify/cookie'
 const cors = require('@fastify/cors');
@@ -10,6 +11,9 @@ import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
 import userRoutes from './modules/users/profile.routes';
 
+import {fastifyStatic} from "@fastify/static";
+import path from "path";
+
 const app = Fastify();
 
 app.register(cors, {
@@ -18,11 +22,19 @@ app.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
 });
 
+app.register(fastifyStatic, {
+  root: path.join(__dirname, "../uploads"),
+  prefix: "/uploads"
+})
+app.register(fastifyMultipart);
 app.register(jwtPlugin);
 app.register(cookie, { secret: env.COOKIE_SECRET });
 app.register(oauth2Plugin);
+
+
 app.register(userRoutes, { prefix: '/profile' });
 app.register(authRoutes, { prefix: '/auth' });
+
 
 app.listen({ port: 3000 }, err => {
   console.log(`

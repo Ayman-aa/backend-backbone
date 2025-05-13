@@ -81,7 +81,7 @@ export default async function authRoutes(app: FastifyInstance) {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return reply.status(401).send({ statusCode: 401, error: "Email or password is incorrect" });
     
-    const token = app.jwt.sign({ id: user.id, email: user.email }, { expiresIn: '15s' });
+    const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15s' });
     
     const refreshToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -123,7 +123,7 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ error: "Invalid or expired refresh token" });
         
     const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username }, { expiresIn: '15s' });
+    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15s' });
     
     /* todo: 4adir rotate refresh token hna blati 4er nchecki wa7ed l3aiba */
     await prisma.refreshToken.delete({ where: { token } });
@@ -161,7 +161,7 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ error: "Invalid or expired refresh token" });
         
     const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username }, { expiresIn: '15s' });
+    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15s' });
 
     return reply.send({ token: newAccessToken });
   })
@@ -205,7 +205,7 @@ export default async function authRoutes(app: FastifyInstance) {
       });
      }
     
-    const jwtToken = app.jwt.sign({ id: user.id, email: user.email }, { expiresIn: '15m' });
+    const jwtToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15m' });
 
     const refreshToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
