@@ -1,28 +1,25 @@
 import Fastify, { fastify } from 'fastify';
-import authRoutes from './routes/auth';
-const dotenv = require("dotenv");
+import authRoutes from './modules/auth/auth';
+
 import cookie from '@fastify/cookie'
 const cors = require('@fastify/cors');
+import { env } from './config/env';
 
-
-dotenv.config();
 
 import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
-import protectedRoutes from './routes/protected';
+import protectedRoutes from './modules/users/profile.routes';
 
 const app = Fastify();
 
-// Register the CORS plugin
 app.register(cors, {
-  // Allow all origins (not recommended for production)
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 });
 
 app.register(jwtPlugin);
-app.register(cookie, { secret: process.env.COOKIE_SECRE });
+app.register(cookie, { secret: env.COOKIE_SECRET });
 app.register(oauth2Plugin);
 app.register(protectedRoutes, { prefix: '/protected' });
 app.register(authRoutes, { prefix: '/auth' });

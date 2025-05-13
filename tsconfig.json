@@ -8,7 +8,12 @@
     "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "removeComments": true
+    
+    // "baseUrl": "./src", // <-- Add this, tells TS the base directory for resolving paths
+    //     "paths": { // <-- 'paths' (plural) and INSIDE compilerOptions
+    //       "@/*": ["./*"] // <-- This now means "@/" maps to "./src/"
+    // },
+    "removeComments": true,
   },
   "include": ["src/**/*"], 
   "exclude": ["node_modules"]

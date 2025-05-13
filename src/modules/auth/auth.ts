@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 const bcrypt = require("bcrypt");
-import { generateRandomUsername, prisma } from '../utils/prisma';
+import { generateRandomUsername, prisma } from '../../utils/prisma';
+
 /* 
   Q: When JWT expires, what happens?
   ✅ Frontend uses refresh token (from cookie) to get new JWT.
@@ -12,7 +13,6 @@ import { generateRandomUsername, prisma } from '../utils/prisma';
   ✅ User is fully logged out. You return 401, and frontend clears everything.
 */
 export default async function authRoutes(app: FastifyInstance) {
-  
   /* <-- Register route --> */
   app.post("/register", {
     schema: {
