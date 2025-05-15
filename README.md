@@ -10,22 +10,27 @@ Additionally, it supports authentication through various platforms including **G
 
 The project also includes a Swagger documentation.
 
-## Features
-  - Auth
-    - [X] Authenticate user
-    - [X] Email verify
-    - [ ] Implement "Forgot Password" via email
-    - [X] Logout a user
-    - [X] Refresh token
-    - [ ] Implement "Reset Password" via email
-  - User
-    - [X] Create a new user
-    - [X] Update user
-    - [X] Reset password
-    - [ ] Delete user
-  - Social Platform Integration
-    - [X] Github
-    - [ ] Google
+### ✅ Authentication
+
+- [x] Local register & login with JWT
+- [x] Google OAuth login/signup
+- [x] JWT access token (short-lived) & refresh token (7d, cookie)
+- [x] Refresh endpoint (`/auth/refresh`)
+- [x] Logout (`/auth/logout`)
+- [x] User info (`/profile/me`)
+- [x] Upload avatar image via multipart/form-data
+- [x] Update username (`/profile/username`)
+
+### 👥 Friend System
+
+- [x] Send request (`POST /friends/request`)
+- [x] Accept request (`POST /friends/accept`)
+- [x] Decline request (`POST /friends/decline`)
+- [x] List all accepted friends (`GET /friends/list`)
+- [x] View pending received requests (`GET /friends/pending`)
+- [x] View sent requests (`GET /friends/sent`)
+
+> Friendships use a single `Friendship` table with `requesterId`, `recipientId`, and `status`.
 
 
 
