@@ -11,7 +11,7 @@ const userSchema = z.object({
   username: z.string().min(3).optional(),
 })
 
-export default async function protectedRoutes(app: FastifyInstance) {
+export default async function profile(app: FastifyInstance) {
   
   /* <-- me route --> */
   app.get("/me", { preHandler: [app.authenticate] }, async (req, reply) => {
@@ -51,6 +51,7 @@ export default async function protectedRoutes(app: FastifyInstance) {
   /* <-- update avatar route --> */
   app.patch("/avatar", { preHandler: [app.authenticate] }, async (req, reply) => {
     const user: any = req.user;
+    const oldAvatar = user.avatar;
     
     const data = await req.file();
     
@@ -60,6 +61,7 @@ export default async function protectedRoutes(app: FastifyInstance) {
     const fileExt = path.extname(data.filename);
     const fileName = `avatar_${user.id}_${Date.now()}${fileExt}`;
     const filePath = path.join(__dirname, "../../../uploads", fileName);
+    const __uploadsDir = path.join(__dirname, "../../../uploads");
     
     try {
       await pipeline(data.file, fs.createWriteStream(filePath));
@@ -70,6 +72,15 @@ export default async function protectedRoutes(app: FastifyInstance) {
           avatar: fileName,
         }
       });
+      
+      if (oldAvatar && oldAvatar !== 'default_avatar.png') {
+        const oldAvatarPath = path.join(__uploadsDir, oldAvatar);
+          fs.unlink(oldAvatarPath, (err) => {
+            if (err) throw err;
+            console.log(`Old avatar deleted: ${oldAvatar}`);
+          });
+      }
+      
       return reply.send({ message: "Avatar updated", avatar: updateUser.avatar });
     } catch (err) {
         console.error("Upload error:", err);
@@ -78,3 +89,11 @@ export default async function protectedRoutes(app: FastifyInstance) {
   })
   /* <-- update avatar route --> */
 }
+
+/*
+| Method | Route              | Description                           |
+| ------ | ------------------ | ------------------------------------- |
+| GET    | `/me`              | Get current user profile              |
+| PATCH  | `/username`        | Update username                       |
+| PATCH  | `/avatar`          | Update profile picture                |
+*/

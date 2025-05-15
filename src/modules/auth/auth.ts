@@ -161,7 +161,7 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ error: "Invalid or expired refresh token" });
         
     const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15s' });
+    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15m' });
 
     return reply.send({ token: newAccessToken });
   })
@@ -185,58 +185,62 @@ export default async function authRoutes(app: FastifyInstance) {
     
   /* <-- Google Callback route --> */
   app.get("/google/callback", async (request, reply) => {
-    const token = await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-    
-    const userInfo = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        Authorization: `Bearer ${token.token.access_token}`
-      }
-    }).then(res => res.json());
-    
-    /* Daba ra hna wa9ila fin 4adi darou l2ala3ib dial checks, including each of login and signup */
-    let user = await prisma.user.findUnique({ where: { email: userInfo.email } });
-    if (!user) {
-      user = await prisma.user.create({
+    try {
+      const token = await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+      
+      const userInfo = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          Authorization: `Bearer ${token.token.access_token}`
+        }
+      }).then(res => res.json());
+      
+      /* Daba ra hna wa9ila fin 4adi darou l2ala3ib dial checks, including each of login and signup */
+      let user = await prisma.user.findUnique({ where: { email: userInfo.email } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: userInfo.email,
+            password: '',
+            username: generateRandomUsername(userInfo.given_name)
+          }
+        });
+       }
+      
+      const jwtToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15m' });
+  
+      const refreshToken = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await prisma.refreshToken.create({
         data: {
-          email: userInfo.email,
-          password: '',
-          username: generateRandomUsername(userInfo.given_name)
+          token: refreshToken,
+          userId: user.id,
+          expiresAt,
+          userAgent: request.headers['user-agent'],
+          ipAddress: request.ip,
         }
       });
-     }
-    
-    const jwtToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15m' });
-
-    const refreshToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-        expiresAt,
-        userAgent: request.headers['user-agent'],
-        ipAddress: request.ip,
-      }
-    });
-    
-    reply.setCookie("refreshToken", refreshToken, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 3600,
-    })
-    
-    
-    // return reply.status(202).send({ 
-    //   statusCode: 202,
-    //   message: "Login successful",
-    //   token: jwtToken,
-    //   user: { id: user.id, email: user.email, username: user.username }
-    //   });
-    
-    return reply.redirect('http://localhost:8080/');
-
+      
+      reply.setCookie("refreshToken", refreshToken, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 3600,
+      })
+      
+      
+      // return reply.status(202).send({ 
+      //   statusCode: 202,
+      //   message: "Login successful",
+      //   token: jwtToken,
+      //   user: { id: user.id, email: user.email, username: user.username }
+      //   });
+      
+      return reply.redirect('http://localhost:8080/');
+    } catch (err) {
+      console.error("❌ Google auth error:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
    })
   /* <-- Google Callback route --> */
   
@@ -248,3 +252,14 @@ export default async function authRoutes(app: FastifyInstance) {
   /* <-- Sessions route !But not now --> */
 
 }
+
+/*
+| Method | Route              | Description                           |
+| ------ | ------------------ | ------------------------------------- |
+| POST   | `/register`        | Register a new user                   |
+| POST   | `/login`           | Log in with email & password          |
+| POST   | `/refresh`         | Refresh authentication token|
+| POST   | `/fetch-token`     | Get a new token using refresh token in cookie |
+| POST   | `/logout`          | Log out (invalidate refresh token)    |
+| GET    | `/google/callback` | Handle Google OAuth response          |
+*/

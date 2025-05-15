@@ -9,6 +9,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Friendship {
+  id           Int            @id @default(autoincrement())
+  requester    User           @relation("RequestSender", fields: [requesterId], references: [id])
+  requesterId  Int
+  
+  recipient    User           @relation("RequestReceiver", fields: [recipientId], references: [id])
+  recipientId  Int
+  
+  status       String         // "pending", "accepted", "declined"
+  createdAt    DateTime @default(now())
+}
+
 model User {
   id           Int            @id @default(autoincrement())
   email        String         @unique
@@ -18,6 +30,8 @@ model User {
   last_name    String?
   avatar       String?
   RefreshToken RefreshToken[]
+  sentRequests     Friendship[] @relation("RequestSender")
+  receivedRequests Friendship[] @relation("RequestReceiver")
 }
 
 model RefreshToken {

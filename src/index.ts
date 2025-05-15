@@ -1,5 +1,4 @@
 import Fastify, { fastify } from 'fastify';
-import authRoutes from './modules/auth/auth';
 import fastifyMultipart from "@fastify/multipart";
 
 import cookie from '@fastify/cookie'
@@ -10,6 +9,9 @@ import { env } from './config/env';
 import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
 import userRoutes from './modules/users/profile.routes';
+import authRoutes from './modules/auth/auth';
+import friendsRoutes from './modules/friends/friends.routes'
+
 
 import {fastifyStatic} from "@fastify/static";
 import path from "path";
@@ -17,9 +19,8 @@ import path from "path";
 const app = Fastify();
 
 app.register(cors, {
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    origin: 'http://localhost:8080', // <-- Double-check this value!
+    credentials: true
 });
 
 app.register(fastifyStatic, {
@@ -28,12 +29,13 @@ app.register(fastifyStatic, {
 })
 app.register(fastifyMultipart);
 app.register(jwtPlugin);
-app.register(cookie, { secret: env.COOKIE_SECRET });
+app.register(cookie, { secret: env.COOKIE_SECRET, parseOptions: {} });
 app.register(oauth2Plugin);
 
 
 app.register(userRoutes, { prefix: '/profile' });
 app.register(authRoutes, { prefix: '/auth' });
+app.register(friendsRoutes, { prefix: '/friends' });
 
 
 app.listen({ port: 3000 }, err => {
