@@ -8,13 +8,16 @@ import { env } from './config/env';
 
 import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
+
 import userRoutes from './modules/users/profile.routes';
 import authRoutes from './modules/auth/auth';
 import friendsRoutes from './modules/friends/friends.routes'
+import chatRoutes from './modules/chats/chats.routes';
 
 
 import {fastifyStatic} from "@fastify/static";
 import path from "path";
+
 
 const app = Fastify();
 
@@ -27,6 +30,7 @@ app.register(fastifyStatic, {
   root: path.join(__dirname, "../uploads"),
   prefix: "/uploads"
 })
+
 app.register(fastifyMultipart);
 app.register(jwtPlugin);
 app.register(cookie, { secret: env.COOKIE_SECRET, parseOptions: {} });
@@ -36,6 +40,7 @@ app.register(oauth2Plugin);
 app.register(userRoutes, { prefix: '/profile' });
 app.register(authRoutes, { prefix: '/auth' });
 app.register(friendsRoutes, { prefix: '/friends' });
+app.register(chatRoutes, { prefix: '/messages' });
 
 
 app.listen({ port: 3000 }, err => {
