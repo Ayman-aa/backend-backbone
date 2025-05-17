@@ -72,43 +72,52 @@ export default async function authRoutes(app: FastifyInstance) {
       }
     }
    }, async (request, reply) => {
-    const { email, password } = request.body as {email: string, password: string};
-    
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user)
-      return reply.status(400).send({ statusCode: 400, error: "Email or password is incorrect" });
-    
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return reply.status(401).send({ statusCode: 401, error: "Email or password is incorrect" });
-    
-    const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15s' });
-    
-    const refreshToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-        expiresAt,
-        userAgent: request.headers['user-agent'],
-        ipAddress: request.ip,
-      }
-    });
-    
-    reply.setCookie("refreshToken", refreshToken, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 3600,
-    })
-    
-    return reply.status(202).send({ 
-      statusCode: 202,
-      message: "Login successful",
-      token,
-      user: { id: user.id, email: user.email, username: user.username }
+    try {
+      const { email, password } = request.body as {email: string, password: string};
+      
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user)
+        return reply.status(400).send({ statusCode: 400, error: "Email or password is incorrect" });
+      
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) return reply.status(401).send({ statusCode: 401, error: "Email or password is incorrect" });
+      
+      const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
+      
+      const refreshToken = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+          expiresAt,
+          userAgent: request.headers['user-agent'],
+          ipAddress: request.ip,
+        }
       });
+      
+      reply.setCookie("refreshToken", refreshToken, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 3600,
+      })
+      
+      return reply.status(202).send({ 
+        statusCode: 202,
+        message: "Login successful",
+        token,
+        user: { id: user.id, email: user.email, username: user.username }
+        });
+    } catch (err) {
+      console.error("Login error:", err);
+      return reply.status(500).send({ 
+      statusCode: 500, 
+      error: "Internal Server Error", 
+      message: "An error occurred during login" 
+    });
+    }
     })
   /* <-- Login route --> */
   
@@ -236,7 +245,7 @@ export default async function authRoutes(app: FastifyInstance) {
       //   user: { id: user.id, email: user.email, username: user.username }
       //   });
       
-      return reply.redirect('http://localhost:8080/');
+      return reply.redirect('http://localhost:8080');
     } catch (err) {
       console.error("❌ Google auth error:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
