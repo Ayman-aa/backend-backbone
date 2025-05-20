@@ -47,7 +47,7 @@ const start = async () => {
     await app.ready();
 
     const httpServer: Server = app.server; // ✅ use Fastify's native HTTP server
-    setupSocketIO(httpServer);             // ✅ hook into the native server
+    setupSocketIO(httpServer, app);             // ✅ hook into the native server
 
     httpServer.listen(3000, () => {
       console.log("✅ HTTP + WebSocket server is running on http://localhost:3000");

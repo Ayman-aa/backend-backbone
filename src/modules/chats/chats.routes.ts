@@ -35,6 +35,17 @@ export default async function chatRoutes(app: FastifyInstance) {
     const { toUserId } = req.body as { toUserId: number };
     
     try {
+      await prisma.message.updateMany({
+        where: {
+          senderId: userId,
+          recipientId: toUserId,
+          readAt: null
+        },
+        data: {
+          readAt: new Date(),
+        }
+      })
+      
       const messages = await prisma.message.findMany({
         where: {
           OR: [
@@ -57,7 +68,7 @@ export default async function chatRoutes(app: FastifyInstance) {
     const user: any = req.user;
     const userId = user.id;
     
-    try {
+    try {      
       const conversationsNotFiltred = await prisma.message.findMany({
         where: {
           OR: [

@@ -1,78 +1,679 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Simple Chat Test</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  </head>
-  <body>
-    <h2>🔐 Set & Save JWT Token</h2>
-    <input type="text" id="jwtInput" placeholder="Paste JWT here" size="80" />
-    <button onclick="saveToken()">Save & Connect</button>
-    <p id="status"></p>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <h2>📨 Send Message</h2>
-    <label>To Socket ID:</label><br />
-    <input type="text" id="toInput" placeholder="Target socket ID" size="40" /><br /><br />
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    <label>Message:</label><br />
-    <input type="text" id="msgInput" placeholder="Write your message..." size="40" />
-    <button onclick="sendMessage()">Send</button>
+        .app {
+            height: 100vh;
+            display: flex;
+            background: white;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
 
-    <h3>💬 Messages</h3>
-    <ul id="messages" style="border: 1px solid #ccc; padding: 10px; min-height: 80px;"></ul>
+        /* Sidebar */
+        .sidebar {
+            width: 400px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .app-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .connection-status {
+            font-size: 14px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-dot.online {
+            background: #10b981;
+        }
+
+        /* Auth Section */
+        .auth-section {
+            padding: 20px;
+            background: white;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #0084ff;
+            box-shadow: 0 0 0 3px rgba(0, 132, 255, 0.1);
+        }
+
+        .connect-btn {
+            width: 100%;
+            padding: 12px;
+            background: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .connect-btn:hover:not(:disabled) {
+            background: #006ee6;
+        }
+
+        .connect-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .connect-btn.disconnect {
+            background: #ef4444;
+        }
+
+        .connect-btn.disconnect:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .user-info {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #0066cc;
+            display: none;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .chat-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .chat-info p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Messages */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .message.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.sent .message-bubble {
+            background: #0084ff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received .message-bubble {
+            background: white;
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .message.sent .message-time {
+            text-align: right;
+        }
+
+        /* Chat Input */
+        .chat-input {
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background: #f1f3f4;
+            padding: 8px;
+            border-radius: 24px;
+        }
+
+        .recipient-input {
+            width: 80px;
+            padding: 8px 12px;
+            border: none;
+            background: white;
+            border-radius: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .recipient-input:focus {
+            outline: none;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            min-height: 20px;
+        }
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #0084ff;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #006ee6;
+        }
+
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .empty-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        /* Scrollbar */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .app {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .sidebar-header {
+                padding: 16px;
+            }
+
+            .auth-section {
+                padding: 16px;
+            }
+
+            .input-container {
+                flex-wrap: wrap;
+            }
+
+            .recipient-input {
+                order: -1;
+                width: 100%;
+                margin-bottom: 8px;
+                border-radius: 8px;
+            }
+        }
+
+        /* Animation */
+        .message {
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-title">Chat</div>
+                <div class="connection-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Disconnected</span>
+                </div>
+            </div>
+            
+            <div class="auth-section">
+                <div class="input-group">
+                    <label class="input-label">JWT Token</label>
+                    <input 
+                        type="password" 
+                        id="jwtToken" 
+                        class="input-field"
+                        placeholder="Enter your token..."
+                    >
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Server URL</label>
+                    <input 
+                        type="text" 
+                        id="serverUrl" 
+                        class="input-field"
+                        value="http://localhost:3000"
+                    >
+                </div>
+
+                <button id="connectBtn" class="connect-btn">Connect</button>
+                <div id="errorMessage" class="error-message"></div>
+                <div id="userInfo" class="user-info"></div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-avatar">💬</div>
+                <div class="chat-info">
+                    <h3>Messages</h3>
+                    <p id="chatStatus">Connect to start chatting</p>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">💭</div>
+                    <div class="empty-title">No messages yet</div>
+                    <div class="empty-subtitle">Start a conversation by connecting and sending a message</div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-container">
+                    <input 
+                        type="number" 
+                        id="recipientId" 
+                        class="recipient-input"
+                        placeholder="To:"
+                        disabled
+                    >
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input"
+                        placeholder="Type a message..."
+                        rows="1"
+                        disabled
+                    ></textarea>
+                    <button id="sendBtn" class="send-button" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-      let socket;
+        let socket = null;
+        let currentUserId = null;
 
-      function saveToken() {
-        const token = document.getElementById("jwtInput").value;
-        if (!token) return alert("Paste a valid JWT first!");
+        const elements = {
+            jwtToken: document.getElementById('jwtToken'),
+            serverUrl: document.getElementById('serverUrl'),
+            connectBtn: document.getElementById('connectBtn'),
+            errorMessage: document.getElementById('errorMessage'),
+            userInfo: document.getElementById('userInfo'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            chatStatus: document.getElementById('chatStatus'),
+            messagesContainer: document.getElementById('messagesContainer'),
+            emptyState: document.getElementById('emptyState'),
+            recipientId: document.getElementById('recipientId'),
+            messageInput: document.getElementById('messageInput'),
+            sendBtn: document.getElementById('sendBtn')
+        };
 
-        localStorage.setItem("jwtToken", token);
-        connectSocket(token);
-      }
-
-      function connectSocket(token) {
-        if (socket) socket.disconnect(); // Reconnect if already open
-
-        socket = io("http://localhost:3000", {
-          auth: { token },
+        // Auto-resize textarea
+        elements.messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
         });
 
-        socket.on("connect", () => {
-          document.getElementById("status").textContent =
-            "✅ Connected. Your socket ID: " + socket.id;
-          console.log("Connected as", socket.id);
+        // Connect button
+        elements.connectBtn.addEventListener('click', () => {
+            if (socket && socket.connected) {
+                socket.disconnect();
+                return;
+            }
+
+            const token = elements.jwtToken.value.trim();
+            const serverUrl = elements.serverUrl.value.trim();
+
+            if (!token) {
+                showError('Please enter your JWT token');
+                return;
+            }
+
+            connectToServer(serverUrl, token);
         });
 
-        socket.on("private_message", (data) => {
-          const msgList = document.getElementById("messages");
-          const li = document.createElement("li");
-          li.textContent = `📨 From ${data.from}: ${data.message}`;
-          msgList.appendChild(li);
+        function connectToServer(serverUrl, token) {
+            hideError();
+            setConnecting(true);
+
+            socket = io(serverUrl, {
+                auth: { token: token }
+            });
+
+            socket.on('connect', () => {
+                updateConnectionStatus(true);
+                enableChat();
+
+                // Decode JWT
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    currentUserId = payload.id;
+                    showUserInfo(currentUserId);
+                } catch (e) {
+                    console.warn('Could not decode JWT');
+                }
+            });
+
+            socket.on('connect_error', (error) => {
+                showError(`Connection failed: ${error.message}`);
+                updateConnectionStatus(false);
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
+                disableChat();
+                hideUserInfo();
+            });
+
+            socket.on('private_message', (data) => {
+                addMessage(data.message, false, data.from);
+            });
+        }
+
+        function sendMessage() {
+            const recipientId = parseInt(elements.recipientId.value);
+            const message = elements.messageInput.value.trim();
+
+            if (!recipientId || !message) return;
+            if (!socket || !socket.connected) return;
+
+            socket.emit('private', recipientId, message);
+            addMessage(message, true, recipientId);
+            elements.messageInput.value = '';
+            elements.messageInput.style.height = 'auto';
+        }
+
+        function addMessage(text, isSent, userId) {
+            elements.emptyState.style.display = 'none';
+
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
+
+            const bubbleEl = document.createElement('div');
+            bubbleEl.className = 'message-bubble';
+            bubbleEl.textContent = text;
+
+            const timeEl = document.createElement('div');
+            timeEl.className = 'message-time';
+            timeEl.textContent = new Date().toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            const contentEl = document.createElement('div');
+            contentEl.appendChild(bubbleEl);
+            contentEl.appendChild(timeEl);
+            messageEl.appendChild(contentEl);
+
+            elements.messagesContainer.appendChild(messageEl);
+            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        }
+
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                elements.statusDot.classList.add('online');
+                elements.statusText.textContent = 'Connected';
+                elements.connectBtn.textContent = 'Disconnect';
+                elements.connectBtn.classList.add('disconnect');
+                elements.chatStatus.textContent = `Connected as User ${currentUserId || ''}`;
+            } else {
+                elements.statusDot.classList.remove('online');
+                elements.statusText.textContent = 'Disconnected';
+                elements.connectBtn.textContent = 'Connect';
+                elements.connectBtn.classList.remove('disconnect');
+                elements.chatStatus.textContent = 'Connect to start chatting';
+            }
+            setConnecting(false);
+        }
+
+        function setConnecting(connecting) {
+            elements.connectBtn.disabled = connecting;
+            if (connecting) {
+                elements.connectBtn.textContent = 'Connecting...';
+            }
+        }
+
+        function enableChat() {
+            elements.recipientId.disabled = false;
+            elements.messageInput.disabled = false;
+            elements.sendBtn.disabled = false;
+            elements.messageInput.focus();
+        }
+
+        function disableChat() {
+            elements.recipientId.disabled = true;
+            elements.messageInput.disabled = true;
+            elements.sendBtn.disabled = true;
+        }
+
+        function showUserInfo(userId) {
+            elements.userInfo.style.display = 'block';
+            elements.userInfo.textContent = `Logged in as User ${userId}`;
+        }
+
+        function hideUserInfo() {
+            elements.userInfo.style.display = 'none';
+        }
+
+        function showError(message) {
+            elements.errorMessage.style.display = 'block';
+            elements.errorMessage.textContent = message;
+        }
+
+        function hideError() {
+            elements.errorMessage.style.display = 'none';
+        }
+
+        // Send on Enter
+        elements.messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
         });
 
-        socket.on("connect_error", (err) => {
-          document.getElementById("status").textContent =
-            "❌ Connect error: " + err.message;
-          console.error(err);
+        elements.sendBtn.addEventListener('click', sendMessage);
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (socket) socket.disconnect();
         });
-      }
-
-      function sendMessage() {
-        const to = document.getElementById("toInput").value;
-        const message = document.getElementById("msgInput").value;
-        if (!to || !message) return alert("Fill in both fields!");
-
-        socket.emit("private_message", { to, message });
-      }
-
-      // Auto-connect if token exists
-      const saved = localStorage.getItem("jwtToken");
-      if (saved) {
-        document.getElementById("jwtInput").value = saved;
-        connectSocket(saved);
-      }
     </script>
-  </body>
+</body>
 </html>

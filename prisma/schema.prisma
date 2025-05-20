@@ -31,7 +31,7 @@ model Message {
 
   content     String
   createdAt   DateTime @default(now())
-  read        Boolean  @default(false)
+  read        DateTime?
 }
 
 model User {
