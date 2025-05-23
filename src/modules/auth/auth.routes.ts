@@ -21,42 +21,42 @@ export default async function authRoutes(app: FastifyInstance) {
         required: ['email', 'password', 'username'],
         properties: {
           email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 6 }, 
+          password: { type: 'string', minLength: 6 },
           username: { type: 'string', minLength: 3 },
         }
       }
     }
-    }, async (request, reply) => {
-        const { email, password, username } = request.body as { email: string, password: string, username: string};
+  }, async (request, reply) => {
+    const { email, password, username } = request.body as { email: string, password: string, username: string };
         
-          try {
-            const [existingMail, existingUser] = await Promise.all([
-              prisma.user.findUnique({ where: { email } }),
-              prisma.user.findUnique({ where: { username } }),
-             ]);
-            if (existingMail) return reply.status(400).send({ statusCode: 400, error: "Email already registered" });
-            if (existingUser)return reply.status(400).send({ statusCode: 400, error: "Username already registered" });
+    try {
+      const [existingMail, existingUser] = await Promise.all([
+        prisma.user.findUnique({ where: { email } }),
+        prisma.user.findUnique({ where: { username } }),
+      ]);
+      if (existingMail) return reply.status(400).send({ statusCode: 400, error: "Email already registered" });
+      if (existingUser) return reply.status(400).send({ statusCode: 400, error: "Username already registered" });
       
-            const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
           
-            const user = await prisma.user.create({
-              data: {
-                email,
-                password: hashedPassword,
-                username,
-              },
-            });
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          username,
+        },
+      });
             
-            reply.status(201).send({
-              statusCode: 201, 
-              message: "User registred successefully",
-              user: { id: user.id, email: user.email, username: user.username } 
-            });
-          } 
-          catch (err) {
-            return reply.status(500).send({ statusCode: 500, error: "Registration failed" });
-          }
-    })
+      reply.status(201).send({
+        statusCode: 201,
+        message: "User registred successefully",
+        user: { id: user.id, email: user.email, username: user.username }
+      });
+    }
+    catch (err) {
+      return reply.status(500).send({ statusCode: 500, error: "Registration failed" });
+    }
+  })
   /* <-- Register route --> */
   
   /* <-- Login route --> */
@@ -67,13 +67,13 @@ export default async function authRoutes(app: FastifyInstance) {
         required: ['email', 'password'],
         properties: {
           email: { type: 'string', format: 'email' },
-          password: {type: 'string', minLength: 6 },
+          password: { type: 'string', minLength: 6 },
         }
       }
     }
-   }, async (request, reply) => {
+  }, async (request, reply) => {
     try {
-      const { email, password } = request.body as {email: string, password: string};
+      const { email, password } = request.body as { email: string, password: string };
       
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user)
@@ -98,65 +98,71 @@ export default async function authRoutes(app: FastifyInstance) {
       
       reply.setCookie("refreshToken", refreshToken, {
         path: "/",
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 3600,
+        httpOnly: false,
+        secure: false,        // Must be true for cross-origin
+        sameSite: "lax",    // Required for cross-origin
+        maxAge: 7 * 24 * 3600
       })
       
-      return reply.status(202).send({ 
+      return reply.status(202).send({
         statusCode: 202,
         message: "Login successful",
         token,
         user: { id: user.id, email: user.email, username: user.username }
-        });
+      });
     } catch (err) {
       console.error("Login error:", err);
-      return reply.status(500).send({ 
-      statusCode: 500, 
-      error: "Internal Server Error", 
-      message: "An error occurred during login" 
-    });
+      return reply.status(500).send({
+        statusCode: 500,
+        error: "Internal Server Error",
+        message: "An error occurred during login"
+      });
     }
-    })
+  })
   /* <-- Login route --> */
   
   /* <-- Refresh route --> */
   app.post("/refresh", async (request, reply) => {
     const token = request.cookies.refreshToken; /* Hada li kain fl cookie li siftna */
-    if (!token)
-      return reply.status(401).send({ error: "No refresh token found" });
-    
-    const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
-    if (!storedToken || storedToken.expiresAt < new Date())
-      return reply.status(401).send({ error: "Invalid or expired refresh token" });
-        
-    const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15s' });
-    
-    /* todo: 4adir rotate refresh token hna blati 4er nchecki wa7ed l3aiba */
-    await prisma.refreshToken.delete({ where: { token } });
-    const newRefreshToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000);
-    await prisma.refreshToken.create({
-      data: {
-        token: newRefreshToken,
-        userId: user.id,
-        expiresAt,
-        userAgent: request.headers['user-agent'],
-        ipAddress: request.ip,
-      }
-    });
-    reply.setCookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 7 * 24 * 3600,
-    });
+
+    try {
+      if (!token)
+        return reply.status(401).send({ error: "No refresh token found" });
   
-    return reply.send({ message: "Token refreshed", token: newAccessToken });
-    })
+      const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
+      if (!storedToken || storedToken.expiresAt < new Date())
+        return reply.status(401).send({ error: "Invalid or expired refresh token" });
+  
+      const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
+      const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15s' });
+      /* todo: 4adir rotate refresh token hna blati 4er nchecki wa7ed l3aiba */
+      await prisma.refreshToken.delete({ where: { token } });
+      const newRefreshToken = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+      await prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: user.id,
+          expiresAt,
+          userAgent: request.headers['user-agent'],
+          ipAddress: request.ip,
+        }
+      });
+          
+      reply.setCookie("refreshToken", newRefreshToken, {
+        path: "/",
+        httpOnly: true,
+        secure: false,        // Must be true for cross-origin
+        sameSite: "lax",    // Required for cross-origin
+        maxAge: 7 * 24 * 3600
+      });
+
+      return reply.send({ message: "Token refreshed", token: newAccessToken });
+    } catch (err) {
+      console.error("❌ Refresh token error:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+  })
   /* <-- Refresh route --> */
   
   /* <-- Fetch-token route --> */
@@ -170,7 +176,7 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ error: "Invalid or expired refresh token" });
         
     const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15m' });
+    const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
 
     return reply.send({ token: newAccessToken });
   })
@@ -184,12 +190,13 @@ export default async function authRoutes(app: FastifyInstance) {
     
     reply.clearCookie("refreshToken", {
       path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      httpOnly: false,
+      secure: false,        // Must be true for cross-origin
+      sameSite: "lax",    // Required for cross-origin
+      maxAge: 7 * 24 * 3600
     });
     return reply.send({ message: "Logout successful" });
-   })
+  })
   /* <-- Logout route --> */
     
   /* <-- Google Callback route --> */
@@ -213,12 +220,15 @@ export default async function authRoutes(app: FastifyInstance) {
             username: generateRandomUsername(userInfo.given_name)
           }
         });
-       }
+      }
       
-      const jwtToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar  }, { expiresIn: '15m' });
+      const jwtToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
   
       const refreshToken = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      console.log("🔑 Created refresh token:", refreshToken);
+      console.log("⏰ Token expires at:", expiresAt);
+      console.log("👤 For user ID:", user.id);
       await prisma.refreshToken.create({
         data: {
           token: refreshToken,
@@ -228,17 +238,17 @@ export default async function authRoutes(app: FastifyInstance) {
           ipAddress: request.ip,
         }
       });
-      
+      console.log("✅ Refresh token saved to database");
       reply.setCookie("refreshToken", refreshToken, {
         path: "/",
         httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 3600,
+        secure: false,        // Must be true for cross-origin
+        sameSite: "lax",    // Required for cross-origin
+        maxAge: 7 * 24 * 3600
       })
       
       
-      // return reply.status(202).send({ 
+      // reply.status(202).send({ 
       //   statusCode: 202,
       //   message: "Login successful",
       //   token: jwtToken,
@@ -250,8 +260,28 @@ export default async function authRoutes(app: FastifyInstance) {
       console.error("❌ Google auth error:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
     }
-   })
+  })
   /* <-- Google Callback route --> */
+  
+  /* <-- Validate route --> */
+  app.get("/validate", async (request, reply) => {
+    try {
+      const authHeader = request.headers['authorization'];
+      if (!authHeader)
+        return reply.status(401).send({ valid: false, message: 'No token provided' });
+      
+      const token = authHeader.split(' ')[1];
+      if (!token)
+        return reply.status(401).send({ valid: false, message: 'Malformed token' });
+        
+      const payload = app.jwt.verify(token);
+      return reply.send({ valid: true, user: payload });
+      
+    } catch (err) {
+        return reply.status(401).send({ valid: false, message: 'Invalid or expired token' });
+      }
+  })
+  /* <-- Validate route --> */
   
   /* <-- Sessions route !But not now --> */
     /* /sessions route that lists them [ip, userAgent]
