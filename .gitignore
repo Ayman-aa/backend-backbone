@@ -2,5 +2,4 @@
 # Keep environment variables out of version control
 .env
 /dist
-zindex.html
 /uploads

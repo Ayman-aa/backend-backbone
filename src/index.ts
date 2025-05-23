@@ -3,6 +3,8 @@ import fastifyMultipart from "@fastify/multipart";
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import { env } from './config/env';
+import fs from 'fs';
+
 
 import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
@@ -20,10 +22,9 @@ import { setupSocketIO } from "./modules/socket/socket";
 
 const app = Fastify();
 
-// Register plugins
-app.register(cors, {
-  origin: '*',
-  credentials: true
+app.register(require('@fastify/cors'), {
+  origin: 'http://localhost:8080',
+  credentials: true,
 });
 
 app.register(fastifyStatic, {
@@ -46,13 +47,16 @@ const start = async () => {
   try {
     await app.ready();
 
-    const httpServer: Server = app.server; // ✅ use Fastify's native HTTP server
-    setupSocketIO(httpServer, app);             // ✅ hook into the native server
+    const httpsServer: Server = app.server;
+    setupSocketIO(httpsServer);
 
-    httpServer.listen(3000, () => {
-      console.log("✅ HTTP + WebSocket server is running on http://localhost:3000");
-      console.log(app.printRoutes());
+    await app.listen({ 
+      port: 3000, 
+      host: '0.0.0.0' // This allows external connections
     });
+
+    console.log("✅ HTTPS + WebSocket server is running on http://localhost:3000");
+    console.log(app.printRoutes());
 
   } catch (err) {
     app.log.error(err);
