@@ -182,7 +182,7 @@ export default async function authRoutes(app: FastifyInstance) {
           
       reply.setCookie("refreshToken", newRefreshToken, {
         path: "/",
-        httpOnly: true,
+        httpOnly: false,
         secure: false,        // Must be true for cross-origin
         sameSite: "lax",    // Required for cross-origin
         maxAge: 7 * 24 * 3600
@@ -272,24 +272,17 @@ export default async function authRoutes(app: FastifyInstance) {
       console.log("✅ Refresh token saved to database");
       reply.setCookie("refreshToken", refreshToken, {
         path: "/",
-        httpOnly: true,
+        httpOnly: false,
         secure: false,        // Must be true for cross-origin
         sameSite: "lax",    // Required for cross-origin
         maxAge: 7 * 24 * 3600
       })
       
-      
-      // reply.status(202).send({ 
-      //   statusCode: 202,
-      //   message: "Login successful",
-      //   token: jwtToken,
-      //   user: { id: user.id, email: user.email, username: user.username }
-      //   });
-      
       return reply.redirect('http://localhost:8080');
     } catch (err) {
       console.error("❌ Google auth error:", err);
-      return reply.status(500).send({ error: "Internal Server Error" });
+      // Redirect to frontend with error parameter
+      return reply.redirect('http://localhost:8080?google_error=true');
     }
   })
   /* <-- Google Callback route --> */
