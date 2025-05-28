@@ -23,7 +23,7 @@ import { setupSocketIO } from "./modules/socket/socket";
 const app = Fastify();
 
 app.register(require('@fastify/cors'), {
-  origin: 'http://localhost:8080',
+  origin: ['http://localhost:8080','http://127.0.0.1:8080'],
   credentials: true,
 });
 

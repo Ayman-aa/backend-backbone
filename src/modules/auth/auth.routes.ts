@@ -13,54 +13,8 @@ import { generateRandomUsername, prisma } from '../../utils/prisma';
   ✅ User is fully logged out. You return 401, and frontend clears everything.
 */
 export default async function authRoutes(app: FastifyInstance) {
-  /* <-- Register route --> */
-  app.post("/register", {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['email', 'password', 'username'],
-        properties: {
-          email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 6 },
-          username: { type: 'string', minLength: 3 },
-        }
-      }
-    }
-  }, async (request, reply) => {
-    const { email, password, username } = request.body as { email: string, password: string, username: string };
-        
-    try {
-      const [existingMail, existingUser] = await Promise.all([
-        prisma.user.findUnique({ where: { email } }),
-        prisma.user.findUnique({ where: { username } }),
-      ]);
-      if (existingMail) return reply.status(400).send({ statusCode: 400, error: "Email already registered" });
-      if (existingUser) return reply.status(400).send({ statusCode: 400, error: "Username already registered" });
-      
-      const hashedPassword = await bcrypt.hash(password, 10);
-          
-      const user = await prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          username,
-        },
-      });
-            
-      reply.status(201).send({
-        statusCode: 201,
-        message: "User registred successefully",
-        user: { id: user.id, email: user.email, username: user.username }
-      });
-    }
-    catch (err) {
-      return reply.status(500).send({ statusCode: 500, error: "Registration failed" });
-    }
-  })
-  /* <-- Register route --> */
-  
-  /* <-- Login route --> */
-  app.post("/login", {
+  /* <-- Unified Authentication route --> */
+  app.post("/authenticate", {
     schema: {
       body: {
         type: 'object',
@@ -68,58 +22,135 @@ export default async function authRoutes(app: FastifyInstance) {
         properties: {
           email: { type: 'string', format: 'email' },
           password: { type: 'string', minLength: 6 },
+          username: { type: 'string', minLength: 3 }, // Optional for registration
         }
       }
     }
   }, async (request, reply) => {
+    const { email, password, username } = request.body as { email: string, password: string, username?: string };
+    
     try {
-      const { email, password } = request.body as { email: string, password: string };
+      // Check if user exists
+      const existingUser = await prisma.user.findUnique({ where: { email } });
       
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user)
-        return reply.status(400).send({ statusCode: 400, error: "Email or password is incorrect" });
-      
-      const match = await bcrypt.compare(password, user.password);
-      if (!match) return reply.status(401).send({ statusCode: 401, error: "Email or password is incorrect" });
-      
-      const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
-      
-      const refreshToken = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      await prisma.refreshToken.create({
-        data: {
-          token: refreshToken,
-          userId: user.id,
-          expiresAt,
-          userAgent: request.headers['user-agent'],
-          ipAddress: request.ip,
+      if (existingUser) {
+        // User exists - verify password (LOGIN)
+        const match = await bcrypt.compare(password, existingUser.password);
+        if (!match) {
+          return reply.status(401).send({ 
+            statusCode: 401, 
+            error: "Incorrect password" 
+          });
         }
-      });
+        
+        // Password correct - login
+        const token = app.jwt.sign({ 
+          id: existingUser.id, 
+          email: existingUser.email, 
+          username: existingUser.username, 
+          avatar: existingUser.avatar 
+        }, { expiresIn: '15m' });
+        
+        const refreshToken = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await prisma.refreshToken.create({
+          data: {
+            token: refreshToken,
+            userId: existingUser.id,
+            expiresAt,
+            userAgent: request.headers['user-agent'],
+            ipAddress: request.ip,
+          }
+        });
+        
+        reply.setCookie("refreshToken", refreshToken, {
+          path: "/",
+          httpOnly: false,
+          secure: false,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 3600
+        });
+        
+        return reply.status(200).send({
+          statusCode: 200,
+          message: "Login successful",
+          token,
+          user: { id: existingUser.id, email: existingUser.email, username: existingUser.username },
+          action: "login"
+        });
+        
+      } else {
+        // User doesn't exist - register new user (REGISTRATION)
+        
+        // Generate username if not provided
+        const newUsername = username || generateRandomUsername(email.split('@')[0]);
+        
+        // Check if username is taken
+        const existingUsername = await prisma.user.findUnique({ where: { username: newUsername } });
+        if (existingUsername) {
+          return reply.status(400).send({ 
+            statusCode: 400, 
+            error: "Username already taken. Please provide a different username." 
+          });
+        }
+        
+        // Create new user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await prisma.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            username: newUsername,
+          },
+        });
+        
+        // Auto-login after registration
+        const token = app.jwt.sign({ 
+          id: newUser.id, 
+          email: newUser.email, 
+          username: newUser.username, 
+          avatar: newUser.avatar 
+        }, { expiresIn: '15m' });
+        
+        const refreshToken = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await prisma.refreshToken.create({
+          data: {
+            token: refreshToken,
+            userId: newUser.id,
+            expiresAt,
+            userAgent: request.headers['user-agent'],
+            ipAddress: request.ip,
+          }
+        });
+        
+        reply.setCookie("refreshToken", refreshToken, {
+          path: "/",
+          httpOnly: false,
+          secure: false,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 3600
+        });
+        
+        return reply.status(201).send({
+          statusCode: 201,
+          message: "Account created and login successful",
+          token,
+          user: { id: newUser.id, email: newUser.email, username: newUser.username },
+          action: "register"
+        });
+      }
       
-      reply.setCookie("refreshToken", refreshToken, {
-        path: "/",
-        httpOnly: false,
-        secure: false,        // Must be true for cross-origin
-        sameSite: "lax",    // Required for cross-origin
-        maxAge: 7 * 24 * 3600
-      })
-      
-      return reply.status(202).send({
-        statusCode: 202,
-        message: "Login successful",
-        token,
-        user: { id: user.id, email: user.email, username: user.username }
-      });
     } catch (err) {
-      console.error("Login error:", err);
-      return reply.status(500).send({
-        statusCode: 500,
+      console.error("Authentication error:", err);
+      return reply.status(500).send({ 
+        statusCode: 500, 
         error: "Internal Server Error",
-        message: "An error occurred during login"
+        message: "An error occurred during authentication"
       });
     }
   })
-  /* <-- Login route --> */
+  /* <-- Unified Authentication route --> */
   
   /* <-- Refresh route --> */
   app.post("/refresh", async (request, reply) => {
@@ -295,10 +326,10 @@ export default async function authRoutes(app: FastifyInstance) {
 /*
 | Method | Route              | Description                           |
 | ------ | ------------------ | ------------------------------------- |
-| POST   | `/register`        | Register a new user                   |
-| POST   | `/login`           | Log in with email & password          |
-| POST   | `/refresh`         | Refresh authentication token|
+| POST   | `/authenticate`    | Unified login/register endpoint       |
+| POST   | `/refresh`         | Refresh authentication token          |
 | POST   | `/fetch-token`     | Get a new token using refresh token in cookie |
 | POST   | `/logout`          | Log out (invalidate refresh token)    |
 | GET    | `/google/callback` | Handle Google OAuth response          |
+| GET    | `/validate`        | Validate authentication token         |
 */
