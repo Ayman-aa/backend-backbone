@@ -170,7 +170,7 @@ export default async function friendsRoutes(app: FastifyInstance) {
       const friends = friendships.map(f => f.requester);
       console.log(JSON.stringify(friends));
         
-      return reply.send({ friends });
+      return reply.send({ friends, friendships });
     } catch (err) {
       console.error("❌ Friend request error:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
