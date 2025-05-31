@@ -10,6 +10,7 @@ import jwtPlugin from './plugins/jwt';
 import oauth2Plugin from './plugins/oauth2';
 
 import userRoutes from './modules/users/profile.routes';
+import usersRoutes from './modules/users/users.routes';
 import authRoutes from './modules/auth/auth.routes';
 import friendsRoutes from './modules/friends/friends.routes';
 import chatRoutes from './modules/chats/chats.routes';
@@ -39,6 +40,7 @@ app.register(oauth2Plugin);
 
 // Register routes
 app.register(userRoutes, { prefix: '/profile' });
+app.register(usersRoutes, { prefix: '/users' });
 app.register(authRoutes, { prefix: '/auth' });
 app.register(friendsRoutes, { prefix: '/friends' });
 app.register(chatRoutes, { prefix: '/chats' });
