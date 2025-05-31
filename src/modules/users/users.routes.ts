@@ -24,8 +24,41 @@ export default async function usersRoutes(app: FastifyInstance) {
           username: 'asc'
         }
       });
+
+      // Get friendship status for each user
+      const usersWithStatus = await Promise.all(
+        users.map(async (targetUser: any) => {
+          const friendship = await prisma.friendship.findFirst({
+            where: {
+              OR: [
+                { requesterId: user.id, recipientId: targetUser.id },
+                { requesterId: targetUser.id, recipientId: user.id },
+              ],
+            },
+          });
+
+          let friendshipStatus = null;
+          if (friendship) {
+            if (friendship.status === 'accepted') {
+              friendshipStatus = 'accepted';
+            } else if (friendship.status === 'pending') {
+              if (friendship.requesterId === user.id) {
+                friendshipStatus = 'pending_sent';
+              } else {
+                friendshipStatus = 'pending_received';
+              }
+            }
+          }
+
+          return {
+            ...targetUser,
+            friendshipStatus,
+            friendshipId: friendship?.id || null
+          };
+        })
+      );
       
-      return reply.send({ users });
+      return reply.send({ users: usersWithStatus });
     } catch (err) {
       console.error("❌ Users fetch error:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
@@ -80,8 +113,41 @@ export default async function usersRoutes(app: FastifyInstance) {
         },
         take: 50 // Limit results
       });
+
+      // Get friendship status for each user
+      const usersWithStatus = await Promise.all(
+        users.map(async (targetUser: any) => {
+          const friendship = await prisma.friendship.findFirst({
+            where: {
+              OR: [
+                { requesterId: user.id, recipientId: targetUser.id },
+                { requesterId: targetUser.id, recipientId: user.id },
+              ],
+            },
+          });
+
+          let friendshipStatus = null;
+          if (friendship) {
+            if (friendship.status === 'accepted') {
+              friendshipStatus = 'accepted';
+            } else if (friendship.status === 'pending') {
+              if (friendship.requesterId === user.id) {
+                friendshipStatus = 'pending_sent';
+              } else {
+                friendshipStatus = 'pending_received';
+              }
+            }
+          }
+
+          return {
+            ...targetUser,
+            friendshipStatus,
+            friendshipId: friendship?.id || null
+          };
+        })
+      );
       
-      return reply.send({ users });
+      return reply.send({ users: usersWithStatus });
     } catch (err) {
       console.error("❌ Users search error:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
