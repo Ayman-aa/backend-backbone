@@ -8,22 +8,13 @@ export default async function usersRoutes(app: FastifyInstance) {
     const user: any = req.user;
     
     try {
-      const users = await prisma.user.findMany({
-        where: {
-          id: {
-            not: user.id // Exclude current user
-          }
-        },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          avatar: true,
-        },
-        orderBy: {
-          username: 'asc'
-        }
-      });
+      // Use raw query for better SQLite compatibility
+      const users = await prisma.$queryRaw`
+        SELECT id, username, email, avatar
+        FROM User 
+        WHERE id != ${user.id}
+        ORDER BY username ASC
+      ` as Array<{ id: number; username: string; email: string; avatar: string | null }>;
 
       // Get friendship status for each user
       const usersWithStatus = await Promise.all(
@@ -76,43 +67,20 @@ export default async function usersRoutes(app: FastifyInstance) {
     }
     
     try {
-      const users = await prisma.user.findMany({
-        where: {
-          AND: [
-            {
-              id: {
-                not: user.id // Exclude current user
-              }
-            },
-            {
-              OR: [
-                {
-                  username: {
-                    contains: query.trim(),
-                    mode: 'insensitive'
-                  }
-                },
-                {
-                  email: {
-                    contains: query.trim(),
-                    mode: 'insensitive'
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          avatar: true,
-        },
-        orderBy: {
-          username: 'asc'
-        },
-        take: 50 // Limit results
-      });
+      const searchTerm = `%${query.trim().toLowerCase()}%`;
+      
+      // Use raw query for case-insensitive search in SQLite
+      const users = await prisma.$queryRaw`
+        SELECT id, username, email, avatar
+        FROM User 
+        WHERE id != ${user.id}
+        AND (
+          LOWER(username) LIKE ${searchTerm}
+          OR LOWER(email) LIKE ${searchTerm}
+        )
+        ORDER BY username ASC
+        LIMIT 50
+      ` as Array<{ id: number; username: string; email: string; avatar: string | null }>;
 
       // Get friendship status for each user
       const usersWithStatus = await Promise.all(
