@@ -165,7 +165,10 @@ export default async function authRoutes(app: FastifyInstance) {
         return reply.status(401).send({ error: "Invalid or expired refresh token" });
   
       const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-      const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15s' });
+      if (!user)
+        return reply.status(401).send({ error: "User not found" });
+        
+      const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
       /* todo: 4adir rotate refresh token hna blati 4er nchecki wa7ed l3aiba */
       await prisma.refreshToken.delete({ where: { token } });
       const newRefreshToken = crypto.randomUUID();
@@ -207,6 +210,9 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ error: "Invalid or expired refresh token" });
         
     const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
+    if (!user)
+      return reply.status(401).send({ error: "User not found" });
+      
     const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
 
     return reply.send({ token: newAccessToken });
