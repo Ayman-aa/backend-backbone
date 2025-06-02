@@ -26,7 +26,7 @@ export default async function authRoutes(app: FastifyInstance) {
         }
       }
     }
-  }, async (request, reply) => {
+   }, async (request, reply) => {
     const { email, password, username } = request.body as { email: string, password: string, username?: string };
     
     try {
