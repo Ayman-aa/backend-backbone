@@ -1,6 +1,40 @@
 import { FastifyInstance } from 'fastify/types/instance'
 import { z } from "zod"
 import { prisma } from "../../utils/prisma"
+import { io } from "../socket/socket"
+
+interface MessageWithRelations {
+  id: number;
+  senderId: number;
+  recipientId: number;
+  content: string;
+  createdAt: Date;
+  read: boolean;
+  sender: {
+    id: number;
+    username: string;
+    avatar: string | null;
+    email: string;
+  };
+  recipient: {
+    id: number;
+    username: string;
+    avatar: string | null;
+    email: string;
+  };
+}
+
+interface ConversationData {
+  user: {
+    id: number;
+    username: string;
+    avatar: string | null;
+    email: string;
+  };
+  lastMessage: MessageWithRelations;
+  unreadCount: number;
+  messages: MessageWithRelations[];
+}
 
 export default async function chatRoutes(app: FastifyInstance) {
   
@@ -18,8 +52,37 @@ export default async function chatRoutes(app: FastifyInstance) {
           senderId: user.id,
           recipientId: toUserId,
           content,
-        }
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+          recipient: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
       });
+
+      // Send real-time notification to recipient if they're online
+      if (io) {
+        io.to(`user_${toUserId}`).emit("private_message", {
+          id: message.id,
+          from: user.id,
+          to: toUserId,
+          sender: message.sender,
+          message: message.content,
+          timestamp: message.createdAt
+        });
+      }
+
       return reply.send({ message });
     } catch (err) {
       console.error("❌ Send message error:", err);
@@ -42,6 +105,22 @@ export default async function chatRoutes(app: FastifyInstance) {
             { senderId: toUserId, recipientId: userId },
           ],
         },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+          recipient: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
         orderBy: { createdAt: "asc" },
       });
       return reply.send({ messages });
@@ -58,7 +137,8 @@ export default async function chatRoutes(app: FastifyInstance) {
     const userId = user.id;
     
     try {
-      const conversationsNotFiltred = await prisma.message.findMany({
+      // Get all messages involving the current user
+      const allMessages = await prisma.message.findMany({
         where: {
           OR: [
             { senderId: userId },
@@ -83,26 +163,83 @@ export default async function chatRoutes(app: FastifyInstance) {
             },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
       });
-      // @ts-ignore
-      const conversations = conversationsNotFiltred.map(c => {
-        return (c.senderId === userId) ? c.recipient : c.sender;
-      });
+
+      // Group messages by conversation partner
+      const conversationMap = new Map<number, ConversationData>();
       
-      const uniqueMap = new Map();
-      // @ts-ignore
-      conversations.forEach(user => {
-        if (!uniqueMap.has(user.id)) uniqueMap.set(user.id, user);
+      allMessages.forEach((message: MessageWithRelations) => {
+        const partnerId = message.senderId === userId ? message.recipientId : message.senderId;
+        const partner = message.senderId === userId ? message.recipient : message.sender;
+        
+        if (!conversationMap.has(partnerId)) {
+          conversationMap.set(partnerId, {
+            user: partner,
+            lastMessage: message,
+            unreadCount: 0,
+            messages: []
+          });
+        }
+        
+        const conversation = conversationMap.get(partnerId);
+        if (conversation) {
+          conversation.messages.push(message);
+        }
       });
-      const uniqueConversations = Array.from(uniqueMap.values());
-      return reply.send({ conversations: uniqueConversations });
+
+      // Calculate unread counts and prepare final conversations array
+      const conversations = Array.from(conversationMap.values()).map(conv => {
+        // Count unread messages (messages sent to current user that are not read)
+        const unreadCount = conv.messages.filter((msg: MessageWithRelations) => 
+          msg.recipientId === userId && !msg.read
+        ).length;
+
+        return {
+          user: conv.user,
+          lastMessage: conv.lastMessage,
+          unreadCount: unreadCount
+        };
+      });
+
+      // Sort by last message timestamp
+      conversations.sort((a, b) => 
+        new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
+      );
+
+      return reply.send({ conversations });
     } 
     catch (err) {
-      console.error("❌ Connot get users chatted with:", err);
+      console.error("❌ Cannot get users chatted with:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
     }
   })
   /* <-- Get users chatted with route --> */
+  
+  /* <-- Mark messages as read route --> */
+  app.post("/mark-read", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const user: any = req.user;
+    const userId = user.id;
+    const { fromUserId } = req.body as { fromUserId: number };
+    
+    try {
+      await prisma.message.updateMany({
+        where: {
+          senderId: fromUserId,
+          recipientId: userId,
+          read: false,
+        },
+        data: {
+          read: true,
+        },
+      });
+      
+      return reply.send({ success: true });
+    } catch (err) {
+      console.error("❌ Cannot mark messages as read:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+  });
+  /* <-- Mark messages as read route --> */
 
 }
