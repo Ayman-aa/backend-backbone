@@ -211,6 +211,109 @@ export default async function friendsRoutes(app: FastifyInstance) {
     }
   })
   /* <-- /friends/sent route --> */
+  
+  /* <-- /friends/block route --> */
+  app.post("/block", {preHandler: [app.authenticate] }, async (req, reply) => {
+    const user: any = req.user;
+    const { blockedUserId } = req.body as { blockedUserId: number };
+    
+    if (user.id == blockedUserId)
+      return reply.status(400).send({ error: "Cannot block yourself" });
+    
+    try {
+      const existing = await prisma.block.findUnique({
+        where: {
+          blockerId_blockerId: {
+            blockerId: user.id,
+            blockedId: blockedUserId,
+          },
+        },
+      });
+    
+      if (existing)
+        return reply.status(409).send({ error: "User is already blocked" });
+      
+      const block = await prisma.block.create({
+        data: {
+          blockerId: user.id,
+          blockedId: blockedUserId,
+        },
+      });
+      
+      return reply.send({ message: "User blocked", block });
+    } catch (err) {
+        console.error("❌ Block error:", err);
+        return reply.status(500).send({ error: "Internal Server Error" });
+    }
+  })
+  /* <-- /friends/block route --> */
+  
+  /* <-- /friends/unblock route --> */
+  app.post("/unblock", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const user: any = req.user;
+    const { blockedUserId } = req.body as { blockedUserId: number };
+  
+    if (user.id === blockedUserId)
+      return reply.status(400).send({ error: "You can't unblock yourself" });
+  
+    try {
+      const block = await prisma.block.findUnique({
+        where: {
+          blockerId_blockedId: {
+            blockerId: user.id,
+            blockedId: blockedUserId,
+          },
+        },
+      });
+  
+      if (!block)
+        return reply.status(404).send({ error: "Block not found" });
+  
+      await prisma.block.delete({
+        where: {
+          blockerId_blockedId: {
+            blockerId: user.id,
+            blockedId: blockedUserId,
+          },
+        },
+      });
+  
+      return reply.send({ message: "User unblocked" });
+    } catch (err) {
+      console.error("❌ Unblock error:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+  });
+  /* <-- /friends/unblock route --> */
+
+  /* <-- /friends/blocked route --> */  
+  app.get("/blocked", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const user: any = req.user;
+  
+    try {
+      const blockedUsers = await prisma.block.findMany({
+        where: { blockerId: user.id },
+        include: {
+          blocked: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+              email: true,
+            },
+          },
+        },
+      });
+      //@ts-ignore
+      const result = blockedUsers.map(entry => entry.blocked);
+      return reply.send({ blocked: result });
+    } catch (err) {
+      console.error("❌ Error fetching blocked users:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+  });
+  /* <-- /friends/blocked route --> */
+
 }
 
 /*
@@ -222,4 +325,7 @@ export default async function friendsRoutes(app: FastifyInstance) {
 | GET    | `/friends/list`    | Get accepted friends                  |
 | GET    | `/friends/pending` | Get requests I received               |
 | GET    | `/friends/sent`    | Get requests I sent                   |
+| POST   | `/friends/block`   | Block a User                          |
+| POST   | `/friends/unblock` | Unblock a User                        |
+| POST   | `/friends/blocked`  | Get list of users I blocked          |
 */
