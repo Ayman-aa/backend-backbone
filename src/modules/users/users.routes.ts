@@ -8,15 +8,37 @@ export default async function usersRoutes(app: FastifyInstance) {
     const user: any = req.user;
     
     try {
-      // Use raw query for better SQLite compatibility
-      const users = await prisma.$queryRaw`
-        SELECT id, username, email, avatar
-        FROM User 
-        WHERE id != ${user.id}
-        ORDER BY username ASC
-      ` as Array<{ id: number; username: string; email: string; avatar: string | null }>;
-
-      // Get friendship status for each user
+      const blocks = await prisma.block.findMany({
+        where: {
+          OR: [
+            { blockerId: user.id },
+            { blockedId: user.id }
+          ],
+        },
+      });
+      
+      // Njibou id's dial lblock li 4an7aydo
+      const blockedUserIds = new Set<number>();
+      // @ts-ignore
+      blocks.forEach(block => {
+        blockedUserIds.add(block.blockerId === user.id ? block.blockedId : block.blockerId);
+      });
+      
+      // Ou db Fetch all users execpt blocked and main user one's 
+      const users = await prisma.user.findMany({
+        where: {
+          id: {
+            notIn: [user.id, ...Array.from(blockedUserIds)],
+          },
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          avatar: true,
+        },
+      });
+      
       const usersWithStatus = await Promise.all(
         users.map(async (targetUser: any) => {
           const friendship = await prisma.friendship.findFirst({
@@ -27,27 +49,23 @@ export default async function usersRoutes(app: FastifyInstance) {
               ],
             },
           });
-
+          
           let friendshipStatus = null;
           if (friendship) {
-            if (friendship.status === 'accepted') {
-              friendshipStatus = 'accepted';
-            } else if (friendship.status === 'pending') {
-              if (friendship.requesterId === user.id) {
-                friendshipStatus = 'pending_sent';
-              } else {
-                friendshipStatus = 'pending_received';
-              }
+            if (friendship.status === "accepted") {
+              friendshipStatus = "accepted";
+            } else if (friendship.status === "pending") {
+              friendshipStatus =
+                friendship.requesterId === user.id ? "pending_sent" : "pending_received";
             }
           }
-
-          return {
+          return { 
             ...targetUser,
             friendshipStatus,
-            friendshipId: friendship?.id || null
-          };
+            friendshipId: friendship?.id || null,
+          }
         })
-      );
+      )
       
       return reply.send({ users: usersWithStatus });
     } catch (err) {
