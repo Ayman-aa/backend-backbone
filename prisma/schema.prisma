@@ -1,5 +1,3 @@
-// This is your Prisma schema file
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,53 +8,61 @@ datasource db {
 }
 
 model Friendship {
-  id           Int            @id @default(autoincrement())
-  requester    User           @relation("RequestSender", fields: [requesterId], references: [id])
-  requesterId  Int
-  
-  recipient    User           @relation("RequestReceiver", fields: [recipientId], references: [id])
-  recipientId  Int
-  
-  status       String         // "pending", "accepted", "declined"
-  createdAt    DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  requesterId Int
+  recipientId Int
+  status      String
+  createdAt   DateTime @default(now())
+  recipient   User     @relation("RequestReceiver", fields: [recipientId], references: [id])
+  requester   User     @relation("RequestSender", fields: [requesterId], references: [id])
 }
 
 model Message {
   id          Int      @id @default(autoincrement())
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
   senderId    Int
-
-  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
   recipientId Int
-
   content     String
   createdAt   DateTime @default(now())
   read        Boolean  @default(false)
+  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique
-  password     String
-  username     String         @unique
-  first_name   String?
-  last_name    String?
-  avatar       String?
-  RefreshToken RefreshToken[]
-  sentRequests     Friendship[] @relation("RequestSender")
-  receivedRequests Friendship[] @relation("RequestReceiver")
-  
-  sentMessages      Message[]     @relation("SentMessages")
-  receivedMessages  Message[]     @relation("ReceivedMessages")
+  id               Int            @id @default(autoincrement())
+  email            String         @unique
+  password         String
+  username         String         @unique
+  first_name       String?
+  last_name        String?
+  avatar           String?
+  receivedRequests Friendship[]   @relation("RequestReceiver")
+  sentRequests     Friendship[]   @relation("RequestSender")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  sentMessages     Message[]      @relation("SentMessages")
+  RefreshToken     RefreshToken[]
+  blockedByUsers   UserBlock[]    @relation("BlockedByUsers")
+  blockedUsers     UserBlock[]    @relation("BlockedUsers")
+}
+
+model UserBlock {
+  id        Int      @id @default(autoincrement())
+  blockerId Int
+  blockedId Int
+  createdAt DateTime @default(now())
+  blocked   User     @relation("BlockedByUsers", fields: [blockedId], references: [id])
+  blocker   User     @relation("BlockedUsers", fields: [blockerId], references: [id])
+
+  @@unique([blockerId, blockedId])
 }
 
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
-  userAgent  String? 
-  ipAddress  String? 
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id])
 }

@@ -1,0 +1,14 @@
+[2025-06-03T02:20:03.987Z] INFO: ✅ HTTPS + WebSocket server is running on http://localhost:3000
+[2025-06-03T02:20:04.004Z] INFO: Server started successfully
+Metadata: {
+  "port": 3000,
+  "environment": "development",
+  "routes": "├── * (OPTIONS)\n├── /users (GET, HEAD)\n│   └── / (GET, HEAD)\n│       └── search (GET, HEAD)\n├── /auth/google (GET, HEAD)\n│   └── /callback (GET, HEAD)\n├── /auth/authenticate (POST)\n├── /auth/refresh (POST)\n├── /auth/fetch-token (POST)\n├── /auth/logout (POST)\n├── /auth/validate (GET, HEAD)\n├── /profile/me (GET, HEAD)\n├── /profile/username (PATCH)\n├── /profile/avatar (PATCH)\n├── /friends/request (POST)\n├── /friends/accept (POST)\n├── /friends/decline (POST)\n├── /friends/list (GET, HEAD)\n├── /friends/pending (GET, HEAD)\n├── /friends/sent (GET, HEAD)\n├── /chats/send (POST)\n├── /chats/thread (POST)\n├── /chats/conversations (GET, HEAD)\n├── /chats/mark-read (POST)\n├── /blocks/block (POST)\n├── /blocks/unblock (POST)\n├── /blocks/list (GET, HEAD)\n├── /blocks/check/:userId (GET, HEAD)\n├── /blocks/check-blocked-by/:userId (GET, HEAD)\n└── /health (GET, HEAD)\n    └── / (GET, HEAD)\n        ├── metrics (GET, HEAD)\n        ├── info (GET, HEAD)\n        └── logs (GET, HEAD)\n"
+}
+[2025-06-03T02:20:06.286Z] INFO: Received SIGINT, shutting down gracefully
+[2025-06-03T02:20:06.287Z] INFO: Monitoring service shutting down
+Metadata: {
+  "uptime": 2,
+  "totalRequests": 0,
+  "totalErrors": 0
+}
