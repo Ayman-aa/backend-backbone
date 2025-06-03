@@ -12,6 +12,19 @@ export default async function friendsRoutes(app: FastifyInstance) {
     try {  
       if (userId === toUserId)
         return reply.status(409).send({ error: "Cannot send request to yourself" });
+      
+        const isBlocked = await prisma.block.findFirst({
+          where: {
+            OR: [
+              { blockerId: userId, blockedId: toUserId },
+              { blockerId: toUserId, blockedId: userId },
+            ]
+          }
+        });
+        
+        if (isBlocked)
+          return reply.status(403).send({ error: "Blocked users cannot interact" });
+
   
       const existingFriendship = await prisma.friendship.findFirst({
         where: {

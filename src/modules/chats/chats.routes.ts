@@ -44,6 +44,18 @@ export default async function chatRoutes(app: FastifyInstance) {
     const { toUserId, content } = req.body as { toUserId: number, content: string };
     
     try {
+      const isBlocked = await prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: user.id, blockedId: toUserId },
+            { blockerId: toUserId, blockedId: user.id },
+          ]
+        }
+      });
+      
+      if (isBlocked)
+        return reply.status(403).send({ error: "Blocked users cannot interact" });
+
       if (!content || content.trim().length === 0)
         return reply.status(400).send({ error: "Message cannot be empty" });
       
