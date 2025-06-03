@@ -1,5 +1,5 @@
-import { FastifyInstance } from '../../../../ayman/node_modules/fastify/types/instance'
-import { z } from "../../../../ayman/node_modules/zod"
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { z } from "zod"
 import { prisma } from "../../utils/prisma"
 import { io } from "../socket/socket"
 import { ChatService } from "./chats.service"
@@ -67,7 +67,7 @@ export default async function chatRoutes(app: FastifyInstance) {
       app.authenticate, 
       chatRateLimiter.createMiddleware()
     ] 
-  }, async (req, reply) => {
+  }, async (req: FastifyRequest, reply: FastifyReply) => {
     const user: any = req.user;
     
     return monitoringService.trackOperation('send_message', async () => {
@@ -83,7 +83,7 @@ export default async function chatRoutes(app: FastifyInstance) {
               ip: req.ip,
               validationErrors: error.issues
             });
-            throw new ValidationError(formatZodError(error));
+            throw new ValidationError(formatZodError(error as z.ZodError));
           }
           throw new ValidationError("Invalid input data");
         }
@@ -207,7 +207,7 @@ export default async function chatRoutes(app: FastifyInstance) {
       app.authenticate, 
       generalApiRateLimiter.createMiddleware()
     ] 
-  }, async (req, reply) => {
+  }, async (req: FastifyRequest, reply: FastifyReply) => {
     const user: any = req.user;
     const userId = user.id;
     
@@ -224,7 +224,7 @@ export default async function chatRoutes(app: FastifyInstance) {
               ip: req.ip,
               validationErrors: error.issues
             });
-            throw new ValidationError(formatZodError(error));
+            throw new ValidationError(formatZodError(error as z.ZodError));
           }
           throw new ValidationError("Invalid input data");
         }
@@ -311,7 +311,7 @@ export default async function chatRoutes(app: FastifyInstance) {
       app.authenticate, 
       generalApiRateLimiter.createMiddleware()
     ] 
-  }, async (req, reply) => {
+  }, async (req: FastifyRequest, reply: FastifyReply) => {
     const user: any = req.user;
     const userId = user.id;
     
@@ -422,7 +422,7 @@ export default async function chatRoutes(app: FastifyInstance) {
       app.authenticate, 
       generalApiRateLimiter.createMiddleware()
     ] 
-  }, async (req, reply) => {
+  }, async (req: FastifyRequest, reply: FastifyReply) => {
     const user: any = req.user;
     const userId = user.id;
     
@@ -439,7 +439,7 @@ export default async function chatRoutes(app: FastifyInstance) {
               ip: req.ip,
               validationErrors: error.issues
             });
-            throw new ValidationError(formatZodError(error));
+            throw new ValidationError(formatZodError(error as z.ZodError));
           }
           throw new ValidationError("Invalid input data");
         }
