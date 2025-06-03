@@ -236,7 +236,7 @@ export default async function friendsRoutes(app: FastifyInstance) {
     try {
       const existing = await prisma.block.findUnique({
         where: {
-          blockerId_blockerId: {
+          blockerId_blockedId: {
             blockerId: user.id,
             blockedId: blockedUserId,
           },
