@@ -112,7 +112,7 @@ class RateLimiter {
 // Predefined rate limiters for different endpoints
 export const chatRateLimiter = new RateLimiter({
   windowMs: 60 * 1000, // 1 minute
-  maxRequests: 10, // 10 messages per minute
+  maxRequests: 30, // 30 messages per minute
   message: 'Too many messages sent. Please wait before sending another message.',
   keyGenerator: (request: FastifyRequest) => {
     const user = (request as any).user;
@@ -121,8 +121,8 @@ export const chatRateLimiter = new RateLimiter({
 });
 
 export const blockRateLimiter = new RateLimiter({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  maxRequests: 20, // 20 block actions per 10 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  maxRequests: 50, // 50 block actions per 5 minutes
   message: 'Too many block/unblock actions. Please wait before trying again.',
   keyGenerator: (request: FastifyRequest) => {
     const user = (request as any).user;
@@ -141,8 +141,8 @@ export const friendRequestRateLimiter = new RateLimiter({
 });
 
 export const generalApiRateLimiter = new RateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 100, // 100 requests per 15 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  maxRequests: 200, // 200 requests per 5 minutes
   message: 'Too many API requests. Please wait before trying again.',
 });
 
