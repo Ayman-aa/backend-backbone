@@ -12,3 +12,1769 @@ Metadata: {
   "totalRequests": 0,
   "totalErrors": 0
 }
+[2025-06-03T11:57:34.453Z] INFO: ✅ HTTPS + WebSocket server is running on http://localhost:3000
+[2025-06-03T11:57:34.471Z] INFO: Server started successfully
+Metadata: {
+  "port": 3000,
+  "environment": "development",
+  "routes": "├── * (OPTIONS)\n├── /users (GET, HEAD)\n│   └── / (GET, HEAD)\n│       └── search (GET, HEAD)\n├── /auth/google (GET, HEAD)\n│   └── /callback (GET, HEAD)\n├── /auth/authenticate (POST)\n├── /auth/refresh (POST)\n├── /auth/fetch-token (POST)\n├── /auth/logout (POST)\n├── /auth/validate (GET, HEAD)\n├── /profile/me (GET, HEAD)\n├── /profile/username (PATCH)\n├── /profile/avatar (PATCH)\n├── /friends/request (POST)\n├── /friends/accept (POST)\n├── /friends/decline (POST)\n├── /friends/list (GET, HEAD)\n├── /friends/pending (GET, HEAD)\n├── /friends/sent (GET, HEAD)\n├── /chats/send (POST)\n├── /chats/thread (POST)\n├── /chats/conversations (GET, HEAD)\n├── /chats/mark-read (POST)\n├── /blocks/block (POST)\n├── /blocks/unblock (POST)\n├── /blocks/list (GET, HEAD)\n├── /blocks/check/:userId (GET, HEAD)\n├── /blocks/check-blocked-by/:userId (GET, HEAD)\n└── /health (GET, HEAD)\n    └── / (GET, HEAD)\n        ├── metrics (GET, HEAD)\n        ├── info (GET, HEAD)\n        └── logs (GET, HEAD)\n"
+}
+[2025-06-03T11:58:24.253Z] ERROR: Failed to start server
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+Stack: Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at doListen (node:net:2139:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21)
+[2025-06-03T11:58:29.183Z] INFO: Received SIGINT, shutting down gracefully
+[2025-06-03T11:58:29.185Z] INFO: Monitoring service shutting down
+Metadata: {
+  "uptime": 55,
+  "totalRequests": 0,
+  "totalErrors": 0
+}
+[2025-06-03T11:58:47.367Z] INFO: ✅ HTTPS + WebSocket server is running on http://localhost:3000
+[2025-06-03T11:58:47.384Z] INFO: Server started successfully
+Metadata: {
+  "port": 3000,
+  "environment": "development",
+  "routes": "├── * (OPTIONS)\n├── /users (GET, HEAD)\n│   └── / (GET, HEAD)\n│       └── search (GET, HEAD)\n├── /auth/google (GET, HEAD)\n│   └── /callback (GET, HEAD)\n├── /auth/authenticate (POST)\n├── /auth/refresh (POST)\n├── /auth/fetch-token (POST)\n├── /auth/logout (POST)\n├── /auth/validate (GET, HEAD)\n├── /profile/me (GET, HEAD)\n├── /profile/username (PATCH)\n├── /profile/avatar (PATCH)\n├── /friends/request (POST)\n├── /friends/accept (POST)\n├── /friends/decline (POST)\n├── /friends/list (GET, HEAD)\n├── /friends/pending (GET, HEAD)\n├── /friends/sent (GET, HEAD)\n├── /chats/send (POST)\n├── /chats/thread (POST)\n├── /chats/conversations (GET, HEAD)\n├── /chats/mark-read (POST)\n├── /blocks/block (POST)\n├── /blocks/unblock (POST)\n├── /blocks/list (GET, HEAD)\n├── /blocks/check/:userId (GET, HEAD)\n├── /blocks/check-blocked-by/:userId (GET, HEAD)\n└── /health (GET, HEAD)\n    └── / (GET, HEAD)\n        ├── metrics (GET, HEAD)\n        ├── info (GET, HEAD)\n        └── logs (GET, HEAD)\n"
+}
+[2025-06-03T11:58:57.135Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:58:57.298Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:00.282Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.467Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.483Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.487Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.494Z] DEBUG: DB: SELECT on message - SUCCESS (4ms) | duration=4ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:02.497Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 7,
+  "conversationCount": 1,
+  "totalMessages": 12,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:02.500Z] DEBUG: PERFORMANCE: get_conversations completed in 11ms - SUCCESS | duration=11ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T11:59:02.517Z] DEBUG: Request started: GET /blocks/check/6
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/6",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.521Z] DEBUG: Request started: GET /blocks/check-blocked-by/6
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/6",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.531Z] DEBUG: Request started: GET /blocks/check-blocked-by/6
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/6",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.545Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.556Z] DEBUG: DB: SELECT on message - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:02.557Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 7,
+  "otherUserId": 6,
+  "messageCount": 12,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:02.557Z] DEBUG: PERFORMANCE: get_message_thread completed in 9ms - SUCCESS | duration=9ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T11:59:02.585Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:02.589Z] DEBUG: DB: SELECT on user - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T11:59:02.590Z] DEBUG: DB: UPDATE on message - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:02.591Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 7,
+  "fromUserId": 6,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:02.592Z] DEBUG: PERFORMANCE: mark_messages_read completed in 5ms - SUCCESS | duration=5ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T11:59:11.836Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:17.215Z] WARN: High memory usage detected: 92.28%
+Metadata: {
+  "heapUsed": 19372248,
+  "heapTotal": 20992000
+}
+[2025-06-03T11:59:29.979Z] DEBUG: Request started: GET /
+Metadata: {
+  "method": "GET",
+  "url": "/",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:29.981Z] WARN: Route not found: GET /
+Metadata: {
+  "method": "GET",
+  "url": "/",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:32.859Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:37.357Z] DEBUG: Request started: POST /auth/authenticate
+Metadata: {
+  "method": "POST",
+  "url": "/auth/authenticate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:41.570Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.265Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.285Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.291Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.297Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:44.298Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 12,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:44.298Z] DEBUG: PERFORMANCE: get_conversations completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T11:59:44.330Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.338Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.351Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.364Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.372Z] DEBUG: DB: SELECT on message - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:44.372Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 12,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:44.373Z] DEBUG: PERFORMANCE: get_message_thread completed in 8ms - SUCCESS | duration=8ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T11:59:44.389Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:44.392Z] DEBUG: DB: SELECT on user - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T11:59:44.394Z] DEBUG: DB: UPDATE on message - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:44.394Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:44.395Z] DEBUG: PERFORMANCE: mark_messages_read completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T11:59:46.607Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:46.623Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:46.639Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:46.655Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:46.656Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 12,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:46.657Z] DEBUG: PERFORMANCE: get_message_thread completed in 16ms - SUCCESS | duration=16ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T11:59:46.683Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:46.689Z] DEBUG: DB: SELECT on user - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T11:59:46.691Z] DEBUG: DB: UPDATE on message - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:46.692Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:46.693Z] DEBUG: PERFORMANCE: mark_messages_read completed in 7ms - SUCCESS | duration=7ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T11:59:47.214Z] WARN: High memory usage detected: 94.95%
+Metadata: {
+  "heapUsed": 20678600,
+  "heapTotal": 21778432
+}
+[2025-06-03T11:59:48.616Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.638Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.643Z] DEBUG: Request started: POST /chats/send
+Metadata: {
+  "method": "POST",
+  "url": "/chats/send",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.652Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.655Z] DEBUG: DB: SELECT on message - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:48.656Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 12,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:48.657Z] DEBUG: PERFORMANCE: get_conversations completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T11:59:48.660Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.909Z] DEBUG: DB: INSERT on message - SUCCESS (251ms) | duration=251ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "INSERT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:48.909Z] INFO: CHAT: MESSAGE_SENT by user 6 to user 7 (message ID: 28) | userId=6, ip=127.0.0.1
+Metadata: {
+  "chatEvent": true,
+  "event": "MESSAGE_SENT",
+  "targetUserId": 7,
+  "messageId": 28
+}
+[2025-06-03T11:59:48.911Z] DEBUG: Real-time message delivered
+Metadata: {
+  "messageId": 28,
+  "senderId": 6,
+  "recipientId": 7
+}
+[2025-06-03T11:59:48.912Z] DEBUG: PERFORMANCE: send_message completed in 267ms - SUCCESS | duration=267ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "send_message",
+  "success": true
+}
+[2025-06-03T11:59:48.939Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.942Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.945Z] DEBUG: DB: SELECT on user - SUCCESS (4ms) | duration=4ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T11:59:48.958Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:48.963Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:49.042Z] DEBUG: DB: UPDATE on message - SUCCESS (96ms) | duration=96ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:49.042Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 7,
+  "fromUserId": 6,
+  "updatedCount": 1,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:49.044Z] DEBUG: PERFORMANCE: mark_messages_read completed in 104ms - SUCCESS | duration=104ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T11:59:49.068Z] DEBUG: DB: SELECT on message - SUCCESS (109ms) | duration=109ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:49.069Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 7,
+  "conversationCount": 1,
+  "totalMessages": 13,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:49.070Z] DEBUG: PERFORMANCE: get_conversations completed in 111ms - SUCCESS | duration=111ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T11:59:56.377Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.410Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.439Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.459Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.464Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:56.465Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 13,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:56.466Z] DEBUG: PERFORMANCE: get_conversations completed in 5ms - SUCCESS | duration=5ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T11:59:56.471Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.496Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.499Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.512Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.525Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.537Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:56.538Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 13,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:56.538Z] DEBUG: PERFORMANCE: get_message_thread completed in 10ms - SUCCESS | duration=10ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T11:59:56.556Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T11:59:56.558Z] DEBUG: DB: SELECT on user - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T11:59:56.561Z] DEBUG: DB: UPDATE on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T11:59:56.561Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T11:59:56.562Z] DEBUG: PERFORMANCE: mark_messages_read completed in 5ms - SUCCESS | duration=5ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T12:00:02.124Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.144Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.178Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.204Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.209Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.211Z] DEBUG: DB: SELECT on message - SUCCESS (6ms) | duration=6ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:02.213Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 13,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:02.214Z] DEBUG: PERFORMANCE: get_conversations completed in 8ms - SUCCESS | duration=8ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:00:02.234Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.237Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.258Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.271Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.284Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:02.284Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 13,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:02.284Z] DEBUG: PERFORMANCE: get_message_thread completed in 11ms - SUCCESS | duration=11ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T12:00:02.302Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:02.305Z] DEBUG: DB: SELECT on user - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T12:00:02.306Z] DEBUG: DB: UPDATE on message - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:02.307Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:02.307Z] DEBUG: PERFORMANCE: mark_messages_read completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T12:00:14.811Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:17.215Z] WARN: High memory usage detected: 96.06%
+Metadata: {
+  "heapUsed": 21424728,
+  "heapTotal": 22302720
+}
+[2025-06-03T12:00:19.156Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:19.181Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:24.410Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:24.430Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:24.434Z] DEBUG: Request started: POST /chats/send
+Metadata: {
+  "method": "POST",
+  "url": "/chats/send",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:24.447Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:24.450Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:24.542Z] DEBUG: DB: INSERT on message - SUCCESS (97ms) | duration=97ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "INSERT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:24.542Z] INFO: CHAT: MESSAGE_SENT by user 6 to user 7 (message ID: 29) | userId=6, ip=127.0.0.1
+Metadata: {
+  "chatEvent": true,
+  "event": "MESSAGE_SENT",
+  "targetUserId": 7,
+  "messageId": 29
+}
+[2025-06-03T12:00:24.543Z] DEBUG: Real-time message delivered
+Metadata: {
+  "messageId": 29,
+  "senderId": 6,
+  "recipientId": 7
+}
+[2025-06-03T12:00:24.544Z] DEBUG: PERFORMANCE: send_message completed in 108ms - SUCCESS | duration=108ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "send_message",
+  "success": true
+}
+[2025-06-03T12:00:24.555Z] DEBUG: DB: SELECT on message - SUCCESS (107ms) | duration=107ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:24.556Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:24.556Z] DEBUG: PERFORMANCE: get_conversations completed in 108ms - SUCCESS | duration=108ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:00:26.667Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.695Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.725Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.747Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.750Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.753Z] DEBUG: DB: SELECT on message - SUCCESS (4ms) | duration=4ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:26.754Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:26.755Z] DEBUG: PERFORMANCE: get_conversations completed in 6ms - SUCCESS | duration=6ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:00:26.774Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.782Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.793Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.806Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.816Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:26.818Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:26.818Z] DEBUG: PERFORMANCE: get_message_thread completed in 10ms - SUCCESS | duration=10ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T12:00:26.837Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:26.839Z] DEBUG: DB: SELECT on user - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T12:00:26.840Z] DEBUG: DB: UPDATE on message - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:26.841Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:26.841Z] DEBUG: PERFORMANCE: mark_messages_read completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T12:00:31.960Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:31.988Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:31.991Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:31.992Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:31.993Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 7,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:31.993Z] DEBUG: PERFORMANCE: get_conversations completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:00:32.007Z] DEBUG: Request started: GET /blocks/check-blocked-by/6
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/6",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:32.017Z] DEBUG: Request started: GET /blocks/check-blocked-by/6
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/6",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:32.031Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:32.038Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:32.038Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 7,
+  "otherUserId": 6,
+  "messageCount": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:32.039Z] DEBUG: PERFORMANCE: get_message_thread completed in 7ms - SUCCESS | duration=7ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T12:00:32.052Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:32.054Z] DEBUG: DB: SELECT on user - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T12:00:32.159Z] DEBUG: DB: UPDATE on message - SUCCESS (105ms) | duration=105ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:32.160Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 7,
+  "fromUserId": 6,
+  "updatedCount": 1,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:32.160Z] DEBUG: PERFORMANCE: mark_messages_read completed in 107ms - SUCCESS | duration=107ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T12:00:36.095Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.126Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.163Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.188Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.189Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.195Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:36.196Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:36.200Z] DEBUG: PERFORMANCE: get_conversations completed in 10ms - SUCCESS | duration=10ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:00:36.223Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.227Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.241Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.255Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.264Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:36.265Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:36.265Z] DEBUG: PERFORMANCE: get_message_thread completed in 9ms - SUCCESS | duration=9ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T12:00:36.281Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:00:36.284Z] DEBUG: DB: SELECT on user - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T12:00:36.285Z] DEBUG: DB: UPDATE on message - SUCCESS (1ms) | duration=1ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:00:36.285Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:00:36.286Z] DEBUG: PERFORMANCE: mark_messages_read completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T12:00:47.215Z] WARN: High memory usage detected: 94.68%
+Metadata: {
+  "heapUsed": 22107856,
+  "heapTotal": 23351296
+}
+[2025-06-03T12:01:17.221Z] WARN: High memory usage detected: 94.80%
+Metadata: {
+  "heapUsed": 22136384,
+  "heapTotal": 23351296
+}
+[2025-06-03T12:01:47.222Z] WARN: High memory usage detected: 94.97%
+Metadata: {
+  "heapUsed": 22177704,
+  "heapTotal": 23351296
+}
+[2025-06-03T12:02:17.222Z] WARN: High memory usage detected: 95.14%
+Metadata: {
+  "heapUsed": 22217120,
+  "heapTotal": 23351296
+}
+[2025-06-03T12:02:21.662Z] DEBUG: Request started: POST /blocks/block
+Metadata: {
+  "method": "POST",
+  "url": "/blocks/block",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:21.767Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:21.778Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:21.791Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:21.796Z] DEBUG: DB: SELECT on message - SUCCESS (4ms) | duration=4ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:21.796Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:21.797Z] DEBUG: PERFORMANCE: get_conversations completed in 5ms - SUCCESS | duration=5ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:02:21.799Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:27.252Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:28.822Z] DEBUG: Request started: POST /blocks/unblock
+Metadata: {
+  "method": "POST",
+  "url": "/blocks/unblock",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:28.913Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:28.921Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:28.948Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:28.950Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:28.953Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:28.953Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:28.953Z] DEBUG: PERFORMANCE: get_conversations completed in 5ms - SUCCESS | duration=5ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:02:30.811Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:30.817Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:30.831Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:30.852Z] DEBUG: Request started: POST /chats/thread
+Metadata: {
+  "method": "POST",
+  "url": "/chats/thread",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:30.867Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:30.868Z] INFO: Message thread retrieved
+Metadata: {
+  "userId": 6,
+  "otherUserId": 7,
+  "messageCount": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:30.869Z] DEBUG: PERFORMANCE: get_message_thread completed in 15ms - SUCCESS | duration=15ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_message_thread",
+  "success": true
+}
+[2025-06-03T12:02:30.904Z] DEBUG: Request started: POST /chats/mark-read
+Metadata: {
+  "method": "POST",
+  "url": "/chats/mark-read",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:30.908Z] DEBUG: DB: SELECT on user - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "user",
+  "success": true
+}
+[2025-06-03T12:02:30.910Z] DEBUG: DB: UPDATE on message - SUCCESS (2ms) | duration=2ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "UPDATE",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:30.911Z] INFO: Messages marked as read
+Metadata: {
+  "userId": 6,
+  "fromUserId": 7,
+  "updatedCount": 0,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:30.912Z] DEBUG: PERFORMANCE: mark_messages_read completed in 6ms - SUCCESS | duration=6ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "mark_messages_read",
+  "success": true
+}
+[2025-06-03T12:02:34.829Z] DEBUG: Request started: POST /blocks/block
+Metadata: {
+  "method": "POST",
+  "url": "/blocks/block",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:34.933Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:34.944Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:34.955Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:34.959Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:34.963Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:34.964Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:34.965Z] DEBUG: PERFORMANCE: get_conversations completed in 7ms - SUCCESS | duration=7ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:02:36.941Z] DEBUG: Request started: POST /auth/fetch-token
+Metadata: {
+  "method": "POST",
+  "url": "/auth/fetch-token",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:36.969Z] DEBUG: Request started: GET /auth/validate
+Metadata: {
+  "method": "GET",
+  "url": "/auth/validate",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:36.991Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:37.009Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:37.010Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:37.014Z] DEBUG: DB: SELECT on message - SUCCESS (5ms) | duration=5ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:37.015Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:37.015Z] DEBUG: PERFORMANCE: get_conversations completed in 6ms - SUCCESS | duration=6ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:02:37.038Z] DEBUG: Request started: GET /blocks/check/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:37.043Z] DEBUG: Request started: GET /blocks/check-blocked-by/7
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/check-blocked-by/7",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:39.276Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:40.237Z] DEBUG: Request started: POST /blocks/unblock
+Metadata: {
+  "method": "POST",
+  "url": "/blocks/unblock",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:40.346Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:40.353Z] DEBUG: Request started: GET /blocks/list
+Metadata: {
+  "method": "GET",
+  "url": "/blocks/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:40.367Z] DEBUG: Request started: GET /chats/conversations
+Metadata: {
+  "method": "GET",
+  "url": "/chats/conversations",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:40.370Z] DEBUG: Request started: GET /friends/list
+Metadata: {
+  "method": "GET",
+  "url": "/friends/list",
+  "ip": "127.0.0.1",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+}
+[2025-06-03T12:02:40.371Z] DEBUG: DB: SELECT on message - SUCCESS (3ms) | duration=3ms
+Metadata: {
+  "databaseEvent": true,
+  "operation": "SELECT",
+  "table": "message",
+  "success": true
+}
+[2025-06-03T12:02:40.371Z] INFO: Conversations retrieved
+Metadata: {
+  "userId": 6,
+  "conversationCount": 1,
+  "totalMessages": 14,
+  "ip": "127.0.0.1"
+}
+[2025-06-03T12:02:40.372Z] DEBUG: PERFORMANCE: get_conversations completed in 4ms - SUCCESS | duration=4ms
+Metadata: {
+  "performanceEvent": true,
+  "operation": "get_conversations",
+  "success": true
+}
+[2025-06-03T12:02:47.223Z] WARN: High memory usage detected: 95.02%
+Metadata: {
+  "heapUsed": 22934712,
+  "heapTotal": 24137728
+}
+[2025-06-03T12:02:54.896Z] INFO: Received SIGINT, shutting down gracefully
+[2025-06-03T12:02:54.898Z] INFO: Monitoring service shutting down
+Metadata: {
+  "uptime": 247,
+  "totalRequests": 126,
+  "totalErrors": 2
+}
