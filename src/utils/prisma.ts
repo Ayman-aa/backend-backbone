@@ -12,3 +12,10 @@ export function generateRandomUsername(p?: string): string {
   
   return `${prefix}_${randomString}`
 }
+
+/*
+| Export                          | Description                                      |
+|---------------------------------|--------------------------------------------------|
+| prisma                          | Initialized Prisma client instance               |
+| generateRandomUsername(p?)      | Generates a random username with optional prefix |
+*/ 

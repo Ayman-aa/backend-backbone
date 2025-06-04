@@ -18,3 +18,13 @@ export default fp(async function (fastify: FastifyInstance) {
     callbackUri: 'http://localhost:3000/auth/google/callback'
   });
 })
+
+/*
+| Plugin         | Description                                                        |
+|----------------|--------------------------------------------------------------------|
+| fastify-oauth2 | Registers Google OAuth2 provider for login                         |
+| Name           | googleOAuth2 (used as `fastify.googleOAuth2` internally)           |
+| Scope          | Requests access to user profile and email                          |
+| Redirect Path  | /auth/google (initiates OAuth flow)                                |
+| Callback URI   | http://localhost:3000/auth/google/callback (handles OAuth response)|
+*/

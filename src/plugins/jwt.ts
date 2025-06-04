@@ -16,3 +16,12 @@ export default fp(async function (fastify: FastifyInstance) {
     }
   });
 })
+
+/*
+| Plugin             | Description                                                    |
+|--------------------|----------------------------------------------------------------|
+| fastify-jwt        | Registers JWT support with secret from env config              |
+| decorate:authenticate | Adds `authenticate` preHandler to protect private routes    |
+|                    | - Verifies JWT token from request                              |
+|                    | - Sends 401 Unauthorized if verification fails                 |
+*/
