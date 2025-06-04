@@ -22,6 +22,32 @@ export default async function profile(app: FastifyInstance) {
     });
   /* <-- me route --> */
   
+  /* <-- :id route --> */
+  app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const { targetUserId } = req.query as { targetUserId?: string };
+    
+    if (!targetUserId || isNaN(Number(targetUserId)))
+      return reply.status(400).send({ error: "Missing or invalid targetUserId" });
+    
+    const userId: number = parseInt(targetUserId);
+    
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id:true, username:true, avatar:true, email:true },
+      });
+      
+      if (!user)
+        return reply.status(404).send({ error: "User not found" });
+      
+      return reply.send({ user });
+    } catch (err) {
+        console.error("❌ Error fetching user:", err);
+        return reply.status(500).send({ error: "Internal Server Error" });
+      }
+  })
+  /* <-- :id route --> */
+  
   /* <-- update username route --> */
   app.patch("/username", {preHandler: [app.authenticate] }, async (request, reply) => {
     const user: any = request.user;
@@ -94,6 +120,7 @@ export default async function profile(app: FastifyInstance) {
 | Method | Route              | Description                           |
 | ------ | ------------------ | ------------------------------------- |
 | GET    | `/me`              | Get current user profile              |
+| GET    | `/:id`             | Get user profile by id                |
 | PATCH  | `/username`        | Update username                       |
 | PATCH  | `/avatar`          | Update profile picture                |
 */
