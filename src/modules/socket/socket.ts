@@ -76,3 +76,13 @@ export function setupSocketIO(server: HttpServer) {
     });
   });
 }
+
+/*
+| Function        | Description                                                   |
+| ----------------|---------------------------------------------------------------|
+| setupSocketIO() | Initializes and configures Socket.IO server with auth         |
+|                 | - Validates JWT on connection                                 |
+|                 | - Joins users to private rooms for messaging                  |
+|                 | - Emits online/offline status to others                       |
+|                 | - Rejects direct message sending via socket (use API instead) |
+*/

@@ -24,12 +24,25 @@ export default async function profile(app: FastifyInstance) {
   
   /* <-- :id route --> */
   app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const mainUser: any = req.user;
     const { targetUserId } = req.query as { targetUserId?: string };
     
     if (!targetUserId || isNaN(Number(targetUserId)))
       return reply.status(400).send({ error: "Missing or invalid targetUserId" });
     
     const userId: number = parseInt(targetUserId);
+    
+    const isBlocked = await prisma.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: mainUser.id, blockedId: userId },
+          { blockerId: userId, blockedId: mainUser.id },
+        ]
+      }
+    });
+    
+    if (isBlocked)
+      return reply.status(403).send({ error: "Blocked users cannot interact" });
     
     try {
       const user = await prisma.user.findUnique({

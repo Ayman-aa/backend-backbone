@@ -255,3 +255,12 @@ export default async function chatRoutes(app: FastifyInstance) {
   /* <-- Mark messages as read route --> */
 
 }
+
+/*
+| Method | Route                | Description                                        |
+|--------|---------------------|-----------------------------------------------------|
+| POST   | `/send`             | Send a private message to a user                    |
+| POST   | `/thread`           | Get all messages between current user and a user    |
+| GET    | `/conversations`    | Get list of users I've chatted with and last message|
+| POST   | `/mark-read`        | Mark messages from a user as read                   |
+*/

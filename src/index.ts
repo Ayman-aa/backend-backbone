@@ -68,3 +68,13 @@ const start = async () => {
 };
 
 start();
+
+/*
+| Section                     | Description                                                  |
+|----------------------------|--------------------------------------------------------------|
+| Imports                    | Loads plugins, route modules, env, static path, socket setup |
+| Fastify instance           | Creates main Fastify app                                     |
+| Middleware registration    | Sets up CORS, static files, multipart, cookies, JWT, OAuth2  |
+| Route registration         | Mounts all feature modules with prefixes                     |
+| start()                    | Prepares server, sets up Socket.IO, starts listening         |
+*/

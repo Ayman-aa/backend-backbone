@@ -327,7 +327,7 @@ export default async function authRoutes(app: FastifyInstance) {
 | ------ | ------------------ | ------------------------------------- |
 | POST   | `/authenticate`    | Unified login/register endpoint       |
 | POST   | `/refresh`         | Refresh authentication token          |
-| POST   | `/fetch-token`     | Get a new token using refresh token in cookie |
+| POST   | `/fetch-token`     | Get a new token using refresh token   |
 | POST   | `/logout`          | Log out (invalidate refresh token)    |
 | GET    | `/google/callback` | Handle Google OAuth response          |
 | GET    | `/validate`        | Validate authentication token         |
