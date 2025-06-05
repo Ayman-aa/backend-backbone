@@ -5,7 +5,8 @@ import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
 
-
+const MIN_TIME_BETWEEN_UPDATES = 60 * 1000;
+let lastUpdateTime: any = null;
 
 const userSchema = z.object({
   username: z.string().min(3).optional(),
@@ -42,7 +43,7 @@ export default async function profile(app: FastifyInstance) {
     });
     
     if (isBlocked)
-      return reply.status(403).send({ error: "Blocked users cannot interact" });
+      return reply.send({ error: "Blocked users cannot interact" });
     
     try {
       const user = await prisma.user.findUnique({
@@ -102,26 +103,32 @@ export default async function profile(app: FastifyInstance) {
     const filePath = path.join(__dirname, "../../../uploads", fileName);
     const __uploadsDir = path.join(__dirname, "../../../uploads");
     
+    if (lastUpdateTime && Date.now() - lastUpdateTime < MIN_TIME_BETWEEN_UPDATES)
+      return reply.status(429).send({ error: "Too many update attempts. Please try again later." });
+    
     try {
       await pipeline(data.file, fs.createWriteStream(filePath));
       
       const updateUser = await prisma.user.update({
         where: { id: user.id },
-        data: {
-          avatar: fileName,
-        }
+        data:  { avatar: fileName },
       });
       
       if (oldAvatar && oldAvatar !== 'default_avatar.png') {
         const oldAvatarPath = path.join(__uploadsDir, oldAvatar);
+        if (fs.existsSync(oldAvatarPath)) {
           fs.unlink(oldAvatarPath, (err) => {
             if (err) throw err;
             console.log(`Old avatar deleted: ${oldAvatar}`);
           });
+        }
+        else
+          console.warn(`Old avatar does not exist, skipping deletion: ${oldAvatarPath}`);
       }
-      
+      lastUpdateTime = Date.now();
       return reply.send({ message: "Avatar updated", avatar: updateUser.avatar });
     } catch (err) {
+        console.log("ana ra hna sabek")
         console.error("Upload error:", err);
         return reply.status(500).send({ error: "Failed to upload image." });
       }
