@@ -76,3 +76,11 @@ model RefreshToken {
   userAgent  String? 
   ipAddress  String? 
 }
+
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  attempts  Int      @default(0)
+  lockedUntil DateTime?
+  updatedAt DateTime @updatedAt
+}

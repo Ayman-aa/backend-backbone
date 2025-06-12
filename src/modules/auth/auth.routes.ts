@@ -32,11 +32,9 @@ export default async function authRoutes(app: FastifyInstance) {
     const { email, password, username } = request.body as { email: string, password: string, username?: string };
     
     try {
-      // Check if user exists
       const existingUser = await prisma.user.findUnique({ where: { email } });
       
       if (existingUser) {
-        // User exists - verify password (LOGIN)
         const match = await bcrypt.compare(password, existingUser.password);
         if (!match) {
           return reply.status(401).send({ 
