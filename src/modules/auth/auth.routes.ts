@@ -14,16 +14,18 @@ import { generateRandomUsername, prisma } from '../../utils/prisma';
 */
 export default async function authRoutes(app: FastifyInstance) {
   /* <-- Unified Authentication route --> */
-  app.post("/authenticate", {
+  app.post("/authenticate", { 
+    preHandler: [app.rateLimit({ max: 5, timeWindow: '1 minute' })],
     schema: {
       body: {
         type: 'object',
         required: ['email', 'password'],
         properties: {
-          email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 6 },
-          username: { type: 'string', minLength: 3 }, // Optional for registration
-        }
+          email: { type: 'string', format: 'email', maxLength: 254, pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$' },
+          password: { type: 'string', minLength: 8, maxLength: 128, pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]' },
+          username: { type: 'string', minLength: 3, maxLength: 30, pattern: '^[a-zA-Z0-9_-]+$' },
+        },
+        additionalProperties: false,
       }
     }
    }, async (request, reply) => {

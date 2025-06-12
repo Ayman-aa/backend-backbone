@@ -1,4 +1,6 @@
 import Fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet'
 import fastifyMultipart from "@fastify/multipart";
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
@@ -33,6 +35,19 @@ app.register(fastifyStatic, {
   root: path.join(__dirname, "../uploads"),
   prefix: "/uploads"
 });
+
+app.register(rateLimit, {
+  max: 10,
+  timeWindow: '1 minute',
+  addHeaders: {
+    'x-ratelimit-limit': true,
+    'x-ratelimit-remaining': true,
+    'x-ratelimit-reset': true,
+  },
+  allowList: ['127.0.0.1', 'localhost'],
+});
+
+app.register(helmet);
 
 app.register(fastifyMultipart);
 app.register(cookie, { secret: env.COOKIE_SECRET });
