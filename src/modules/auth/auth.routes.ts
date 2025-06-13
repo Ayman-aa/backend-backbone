@@ -91,7 +91,7 @@ export default async function authRoutes(app: FastifyInstance) {
        });
        
        return reply.status(201).send({
-         statusCode: logged ? 200 : 201,
+         statusCode: logged ? 201 : 201,
          message: logged ? "Login successful" : "Account created successfully",
          token,
          user: { id: user.id, email: user.email, username: user.username },
@@ -278,8 +278,8 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!token)
         return reply.status(401).send({ valid: false, message: 'Malformed token' });
         
-      const payload = app.jwt.verify(token)  as { id: string, username: string };
-      return reply.send({ valid: true, id: payload.id, username: payload.username });
+      const payload = app.jwt.verify(token) as { id: string, username: string };
+      return reply.send({ valid: true, user: payload });
       
     } catch (err: any) {
         console.warn('Token validation failed:' + err.message);
