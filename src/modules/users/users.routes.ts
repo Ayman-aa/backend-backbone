@@ -4,7 +4,7 @@ import { prisma } from "../../utils/prisma"
 export default async function usersRoutes(app: FastifyInstance) {
   
   /* <-- /users route --> */
-  app.get("/", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.get("/", { preHandler: [app.authenticate, app.rateLimit({ max: 20, timeWindow: '1 minute' })] }, async (req, reply) => {
     const user: any = req.user;
     
     try {

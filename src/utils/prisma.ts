@@ -49,7 +49,7 @@ export async function recordFailedLogin(email: string) {
   });
 }
 
-export async function resetLoginAttempts(email: string) {
+export async function clearLoginAttempts(email: string) {
   try {
     await prisma.loginAttempt.delete({ where: { email } });
   } catch (err) {

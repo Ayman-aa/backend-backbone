@@ -4,9 +4,7 @@ import { prisma } from "../../utils/prisma"
 import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
-
-const MIN_TIME_BETWEEN_UPDATES = 60 * 1000;
-let lastUpdateTime: any = null;
+import crypto from 'crypto';
 
 const userSchema = z.object({
   username: z.string().min(3).optional(),
@@ -16,11 +14,22 @@ export default async function profile(app: FastifyInstance) {
   
   /* <-- me route --> */
   app.get("/me", { preHandler: [app.authenticate] }, async (req, reply) => {
-    return reply.send({
-      message: "You are in",
-      user: req.user
-    });
-    });
+    const user: any = req.user;
+    
+    try {
+      const currentUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { id: true, username: true, email: true, avatar: true, createdAt: true },
+      });
+      
+      if (!currentUser) return reply.status(404).send({ statusCode: 404, error: "User not found" });
+      
+      return reply.send({ user: currentUser });
+    } catch (err: any) {
+      console.error("Profile fetch error: " + user.id + ', ' + err.message || null);
+      return reply.status(500).send({ statusCode: 500, error: "Unable to fetch profile" });
+    }
+  });
   /* <-- me route --> */
   
   /* <-- :id route --> */
@@ -43,7 +52,7 @@ export default async function profile(app: FastifyInstance) {
     });
     
     if (isBlocked)
-      return reply.send({ error: "Blocked users cannot interact" });
+      return reply.status(404).send({ error: "User not found" });
     
     try {
       const user = await prisma.user.findUnique({
@@ -89,24 +98,42 @@ export default async function profile(app: FastifyInstance) {
   /* <-- update username route --> */
   
   /* <-- update avatar route --> */
-  app.patch("/avatar", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.patch("/avatar", {  preHandler: [
+    app.authenticate,
+    app.rateLimit({ max: 3, timeWindow: '1 hour', keyGenerator: (req: any) => req.user.id })
+    ] 
+    }, async (req, reply) => {
     const user: any = req.user;
     const oldAvatar = user.avatar;
     
-    const data = await req.file();
-    
-    if (!data || !data.mimetype.startsWith("image/"))
-      return reply.status(400).send({ error: "Invalid image file" });
-    
-    const fileExt = path.extname(data.filename);
-    const fileName = `avatar_${user.id}_${Date.now()}${fileExt}`;
-    const filePath = path.join(__dirname, "../../../uploads", fileName);
-    const __uploadsDir = path.join(__dirname, "../../../uploads");
-    
-    if (lastUpdateTime && Date.now() - lastUpdateTime < MIN_TIME_BETWEEN_UPDATES)
-      return reply.status(429).send({ error: "Too many update attempts. Please try again later." });
-    
     try {
+      const data = await req.file({
+        limits: {
+          fileSize: 5 * 1024 * 1024, // 5MB limit
+          files: 1
+        }
+      });
+    
+      if (!data) return reply.status(400).send({ error: "Invalid image file" });
+      
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      
+      if (!allowedMimeTypes.includes(data.mimetype))
+        return reply.status(400).send({ error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed." });
+      
+      const fileExt = path.extname(data.filename).toLowerCase();
+      if (!allowedExtensions.includes(fileExt)) return reply.status(400).send({ error: "Invalid file extension" });
+      
+      const fileName = `avatar_${user.id}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}${fileExt}`;
+      const filePath = path.join(__dirname, "../../../uploads", fileName);
+      const __uploadsDir = path.join(__dirname, "../../../uploads");
+      
+      if (!filePath.startsWith(__uploadsDir)) return reply.status(400).send({ error: "Invalid file path" });
+      
+      if (!fs.existsSync(__uploadsDir)) fs.mkdirSync(__uploadsDir, { recursive: true });
+    
+  
       await pipeline(data.file, fs.createWriteStream(filePath));
       
       const updateUser = await prisma.user.update({
@@ -122,14 +149,11 @@ export default async function profile(app: FastifyInstance) {
             console.log(`Old avatar deleted: ${oldAvatar}`);
           });
         }
-        else
-          console.warn(`Old avatar does not exist, skipping deletion: ${oldAvatarPath}`);
+        else console.warn(`Old avatar does not exist, skipping deletion: ${oldAvatarPath}`);
       }
-      lastUpdateTime = Date.now();
       return reply.send({ message: "Avatar updated", avatar: updateUser.avatar });
-    } catch (err) {
-        console.log("ana ra hna sabek")
-        console.error("Upload error:", err);
+    } catch (err: any) {
+        console.error("Upload error:", err.message);
         return reply.status(500).send({ error: "Failed to upload image." });
       }
   })

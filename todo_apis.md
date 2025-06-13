@@ -620,9 +620,8 @@ app.patch("/avatar", {
       }
     });
     
-    if (!data) {
+    if (!data)
       return reply.status(400).send({ error: "No file provided" });
-    }
     
     // Strict file validation
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
