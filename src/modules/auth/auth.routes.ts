@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 const bcrypt = require("bcrypt");
-import { generateRandomUsername, prisma } from '../../utils/prisma';
+import { generateRandomUsername, checkLoginAttempts, recordFailedLogin, clearLoginAttempts, prisma } from '../../utils/prisma';
+import { PrismaClient } from "@prisma/client";
 
 /* 
   Q: When JWT expires, what happens?
@@ -15,188 +16,161 @@ import { generateRandomUsername, prisma } from '../../utils/prisma';
 export default async function authRoutes(app: FastifyInstance) {
   /* <-- Unified Authentication route --> */
   app.post("/authenticate", { 
-    preHandler: [app.rateLimit({ max: 5, timeWindow: '1 minute' })],
-    schema: {
-      body: {
-        type: 'object',
-        required: ['email', 'password'],
-        properties: {
-          email: { type: 'string', format: 'email', maxLength: 254, pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$' },
-          password: { type: 'string', minLength: 8, maxLength: 128, pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]' },
-          username: { type: 'string', minLength: 3, maxLength: 30, pattern: '^[a-zA-Z0-9_-]+$' },
-        },
-        additionalProperties: false,
-      }
-    }
-   }, async (request, reply) => {
-    const { email, password, username } = request.body as { email: string, password: string, username?: string };
-    
-    try {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
-      
-      if (existingUser) {
-        const match = await bcrypt.compare(password, existingUser.password);
-        if (!match) {
-          return reply.status(401).send({ 
-            statusCode: 401, 
-            error: "Incorrect password" 
-          });
-        }
-        
-        // Password correct - login
-        const token = app.jwt.sign({ 
-          id: existingUser.id, 
-          email: existingUser.email, 
-          username: existingUser.username, 
-          avatar: existingUser.avatar 
-        }, { expiresIn: '15m' });
-        
-        const refreshToken = crypto.randomUUID();
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        await prisma.refreshToken.create({
-          data: {
-            token: refreshToken,
-            userId: existingUser.id,
-            expiresAt,
-            userAgent: request.headers['user-agent'],
-            ipAddress: request.ip,
-          }
-        });
-        
-        reply.setCookie("refreshToken", refreshToken, {
-          path: "/",
-          httpOnly: false,
-          secure: false,
-          sameSite: "lax",
-          maxAge: 7 * 24 * 3600
-        });
-        
-        return reply.status(200).send({
-          statusCode: 200,
-          message: "Login successful",
-          token,
-          user: { id: existingUser.id, email: existingUser.email, username: existingUser.username },
-          action: "login"
-        });
-        
-      } else {
-        // User doesn't exist - register new user (REGISTRATION)
-        
-        // Generate username if not provided
-        const newUsername = username || generateRandomUsername(email.split('@')[0]);
-        
-        // Check if username is taken
-        const existingUsername = await prisma.user.findUnique({ where: { username: newUsername } });
-        if (existingUsername) {
-          return reply.status(400).send({ 
-            statusCode: 400, 
-            error: "Username already taken. Please provide a different username." 
-          });
-        }
-        
-        // Create new user
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await prisma.user.create({
-          data: {
-            email,
-            password: hashedPassword,
-            username: newUsername,
-          },
-        });
-        
-        // Auto-login after registration
-        const token = app.jwt.sign({ 
-          id: newUser.id, 
-          email: newUser.email, 
-          username: newUser.username, 
-          avatar: newUser.avatar 
-        }, { expiresIn: '15m' });
-        
-        const refreshToken = crypto.randomUUID();
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        await prisma.refreshToken.create({
-          data: {
-            token: refreshToken,
-            userId: newUser.id,
-            expiresAt,
-            userAgent: request.headers['user-agent'],
-            ipAddress: request.ip,
-          }
-        });
-        
-        reply.setCookie("refreshToken", refreshToken, {
-          path: "/",
-          httpOnly: false,
-          secure: false,
-          sameSite: "lax",
-          maxAge: 7 * 24 * 3600
-        });
-        
-        return reply.status(201).send({
-          statusCode: 201,
-          message: "Account created and login successful",
-          token,
-          user: { id: newUser.id, email: newUser.email, username: newUser.username },
-          action: "register"
-        });
-      }
-      
-    } catch (err) {
-      console.error("Authentication error:", err);
-      return reply.status(500).send({ 
-        statusCode: 500, 
-        error: "Internal Server Error",
-        message: "An error occurred during authentication"
-      });
-    }
-  })
+     preHandler: [app.rateLimit({ max: 5, timeWindow: '5 minute' })],
+     schema: {
+       body: {
+         type: 'object',
+         required: ['email', 'password'],
+         properties: {
+           email: { type: 'string', format: 'email', maxLength: 254, pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$' },
+           password: { type: 'string', minLength: 8, maxLength: 128 },
+           username: { type: 'string', minLength: 3, maxLength: 30, pattern: '^[a-zA-Z0-9_-]+$' },
+         },
+         additionalProperties: false,
+       }
+     }
+    }, async (request, reply) => {
+     const { password, username } = request.body as { email: string, password: string, username?: string };
+     const email = (request.body as any).email.toLowerCase();
+     let logged: boolean;
+     let user: any;
+     
+     try {
+       const loginAttempts: any = await checkLoginAttempts(email);
+       if (loginAttempts.isLocked) 
+         return reply.status(429).send({ statusCode: 429,error: "Account temporarily locked due to too many failed attempts"});
+       
+       const existingUser = await prisma.user.findUnique({ where: { email } });
+       
+       if (existingUser) {
+         const match = await bcrypt.compare(password, existingUser.password);
+         if (!match) {
+           await recordFailedLogin(email);
+           return reply.status(401).send({ statusCode: 401, error: "Invalid credentials" });
+         }
+         logged = true;
+         user = existingUser;
+       } 
+       else {
+         const newUsername = username || generateRandomUsername(email.split('@')[0]);
+         
+         const existingUsername = await prisma.user.findUnique({ where: { username: newUsername } });
+         if (existingUsername)
+           return reply.status(400).send({ statusCode: 400, error: "Username taken. Choose another." });
+         
+         const hashedPassword = await bcrypt.hash(password, 10);
+         const newUser = await prisma.user.create({
+           data: { email, password: hashedPassword, username: newUsername },
+         });
+         logged = false;
+         user = newUser;
+       }
+       await clearLoginAttempts(email);
+       
+       const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, 
+       { expiresIn: '15m' });
+       
+       const refreshToken = crypto.randomUUID();
+       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+       await prisma.refreshToken.create({
+         data: {
+           token: refreshToken,
+           userId: user.id,
+           expiresAt,
+           userAgent: request.headers['user-agent'],
+           ipAddress: request.ip,
+         }
+       });
+       
+       reply.setCookie("refreshToken", refreshToken, {
+         path: "/",
+         httpOnly: false,
+         secure: false,
+         sameSite: "lax",
+         maxAge: 7 * 24 * 3600
+       });
+       
+       return reply.status(201).send({
+         statusCode: logged ? 200 : 201,
+         message: logged ? "Login successful" : "Account created successfully",
+         token,
+         user: { id: user.id, email: user.email, username: user.username },
+         action: logged ? "login" : "register"
+       });
+       
+     } catch (err: any) {
+       app.log.error('Authentication error:', { email, error: err.message });
+       return reply.status(500).send({ statusCode: 500, error: "Authentication service unavailable" });
+     }
+   })
   /* <-- Unified Authentication route --> */
   
   /* <-- Refresh route --> */
-  app.post("/refresh", async (request, reply) => {
-    const token = request.cookies.refreshToken; /* Hada li kain fl cookie li siftna */
-
+  app.post("/refresh", {
+    preHandler: [app.rateLimit({ max: 10, timeWindow: '1 minute' })],
+   }, async (request, reply) => {
+    const token = request.cookies.refreshToken;
+    const userAgent = request.headers['user-agent'];
+    const ipAddress = request.ip;
+  
     try {
-      if (!token)
-        return reply.status(401).send({ error: "No refresh token found" });
+      if (!token) return reply.status(401).send({ error: "No refresh token found" });
   
-      const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
-      if (!storedToken || storedToken.expiresAt < new Date())
-        return reply.status(401).send({ error: "Invalid or expired refresh token" });
+      const result = await prisma.$transaction(async (tx: PrismaClient) => {
+        const storedToken = await tx.refreshToken.findUnique({ 
+          where: { token },
+          include: { user: true }
+        });
   
-      const user = await prisma.user.findUnique({ where: { id: storedToken.userId } });
-      if (!user)
-        return reply.status(401).send({ error: "User not found" });
-        
-      const newAccessToken = app.jwt.sign({ id: user.id, email: user.email, username: user.username, avatar: user.avatar }, { expiresIn: '15m' });
-      /* todo: 4adir rotate refresh token hna blati 4er nchecki wa7ed l3aiba */
-      await prisma.refreshToken.delete({ where: { token } });
-      const newRefreshToken = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000);
-      await prisma.refreshToken.create({
-        data: {
-          token: newRefreshToken,
-          userId: user.id,
-          expiresAt,
-          userAgent: request.headers['user-agent'],
-          ipAddress: request.ip,
+        if (!storedToken || storedToken.expiresAt < new Date()) {
+          if (storedToken) await tx.refreshToken.delete({ where: { token } });  
+          throw new Error('Invalid or expired refresh token');
         }
+  
+        // if (storedToken.userAgent !== userAgent || storedToken.ipAddress !== ipAddress) {
+        //   await tx.refreshToken.deleteMany({ where: { userId: storedToken.userId } });
+        //   throw new Error('Security violation detected');
+        // }
+  
+        await tx.refreshToken.delete({ where: { token } });
+        
+        const newRefreshToken = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        
+        await tx.refreshToken.create({
+          data: {
+            token: newRefreshToken,
+            userId: storedToken.userId,
+            expiresAt,
+            userAgent,
+            ipAddress,
+          }
+        });
+  
+        return { user: storedToken.user, newRefreshToken };
       });
-          
-      reply.setCookie("refreshToken", newRefreshToken, {
+  
+      const newAccessToken = app.jwt.sign({
+        id: result.user.id,
+        email: result.user.email,
+        username: result.user.username,
+        avatar: result.user.avatar
+      }, { expiresIn: '15m' });
+  
+      reply.setCookie("refreshToken", result.newRefreshToken, {
         path: "/",
         httpOnly: false,
-        secure: false,        // Must be true for cross-origin
-        sameSite: "lax",    // Required for cross-origin
+        secure: false,
+        sameSite: "lax",
         maxAge: 7 * 24 * 3600
       });
-
+  
       return reply.send({ message: "Token refreshed", token: newAccessToken });
-    } catch (err) {
-      console.error("❌ Refresh token error:", err);
-      return reply.status(500).send({ error: "Internal Server Error" });
+    } catch (err: any) {
+      app.log.error("Refresh token error:", { error: err.message, userAgent, ipAddress });
+      return reply.status(401).send({ error: "Invalid refresh token" });
     }
-  })
+  });
   /* <-- Refresh route --> */
   
   /* <-- Fetch-token route --> */
@@ -304,10 +278,11 @@ export default async function authRoutes(app: FastifyInstance) {
       if (!token)
         return reply.status(401).send({ valid: false, message: 'Malformed token' });
         
-      const payload = app.jwt.verify(token);
-      return reply.send({ valid: true, user: payload });
+      const payload = app.jwt.verify(token)  as { id: string, username: string };
+      return reply.send({ valid: true, id: payload.id, username: payload.username });
       
-    } catch (err) {
+    } catch (err: any) {
+        console.warn('Token validation failed:' + err.message);
         return reply.status(401).send({ valid: false, message: 'Invalid or expired token' });
       }
   })

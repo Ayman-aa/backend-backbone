@@ -4,14 +4,25 @@ import { prisma } from "../../utils/prisma"
 export default async function friendsRoutes(app: FastifyInstance) {
   
   /* <-- /friends/request route --> */
-  app.post("/request", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/request", { preHandler: [app.authenticate], 
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          toUserId: { type: 'integer', minimum: 1 }
+        },
+        required: ['toUserId'],
+        additionalProperties: false
+      }
+    } 
+   }, async (req, reply) => {
     const { toUserId } = req.body as { toUserId: number };
     const user: any = req.user;
     const userId = user.id;
   
     try {  
       if (userId === toUserId)
-        return reply.status(409).send({ error: "Cannot send request to yourself" });
+        return reply.status(400).send({ statusCode: 400, error: "Cannot send request to yourself" });
       
         const isBlocked = await prisma.block.findFirst({
           where: {
@@ -340,5 +351,5 @@ export default async function friendsRoutes(app: FastifyInstance) {
 | GET    | `/friends/sent`    | Get requests I sent                   |
 | POST   | `/friends/block`   | Block a User                          |
 | POST   | `/friends/unblock` | Unblock a User                        |
-| POST   | `/friends/blocked`  | Get list of users I blocked          |
+| POST   | `/friends/blocked` | Get list of users I blocked           |
 */
