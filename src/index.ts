@@ -33,7 +33,11 @@ app.register(require('@fastify/cors'), {
 
 app.register(fastifyStatic, {
   root: path.join(__dirname, "../uploads"),
-  prefix: "/uploads"
+  prefix: "/uploads",
+  setHeaders: (res) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
 });
 
 app.register(rateLimit, {

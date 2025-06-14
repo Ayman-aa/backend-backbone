@@ -128,7 +128,9 @@ export default async function profile(app: FastifyInstance) {
       const fileName = `avatar_${user.id}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}${fileExt}`;
       const filePath = path.join(__dirname, "../../../uploads", fileName);
       const __uploadsDir = path.join(__dirname, "../../../uploads");
-      
+      console.log("📂 File will be saved as:", fileName);
+      console.log("📂 Full file path:", filePath);
+      console.log("📂 Uploads directory:", __uploadsDir);
       if (!filePath.startsWith(__uploadsDir)) return reply.status(400).send({ error: "Invalid file path" });
       
       if (!fs.existsSync(__uploadsDir)) fs.mkdirSync(__uploadsDir, { recursive: true });
@@ -151,7 +153,7 @@ export default async function profile(app: FastifyInstance) {
         }
         else console.warn(`Old avatar does not exist, skipping deletion: ${oldAvatarPath}`);
       }
-      return reply.send({ message: "Avatar updated", avatar: updateUser.avatar });
+      return reply.send({ message: "Avatar updated", avatar: updateUser.avatar, fullPath: `/uploads/${fileName}` });
     } catch (err: any) {
         console.error("Upload error:", err.message);
         return reply.status(500).send({ error: "Failed to upload image." });
