@@ -64,6 +64,10 @@ model User {
   
   blocksSent        Block[]       @relation("Blocker")
   blocksReceived    Block[]       @relation("Blocked")
+
+  gamesAsPlayer1   Game[]        @relation("Player1")
+  gamesAsPlayer2   Game[]        @relation("Player2")
+  gamesWon         Game[]        @relation("GameWinner")
 }
 
 model RefreshToken {
@@ -83,4 +87,30 @@ model LoginAttempt {
   attempts  Int      @default(0)
   lockedUntil DateTime?
   updatedAt DateTime @updatedAt
+}
+
+enum GameMode {
+  LOCAL
+  REMOTE
+  TOURNAMENT
+}
+
+model Game {
+  id           Int       @id @default(autoincrement())
+  player1      User      @relation("Player1", fields: [player1Id], references: [id])
+  player1Id    Int
+
+  // player2 is optional: not a real user for local games
+  player2      User?     @relation("Player2", fields: [player2Id], references: [id])
+  player2Id    Int?
+
+  player2Name  String?   // Only used if player2 is NOT a registered user
+
+  score1       Int
+  score2       Int
+
+  winnerId     Int?      // winner could be guest
+  winner       User?     @relation("GameWinner", fields: [winnerId], references: [id])
+  mode         GameMode  @default(LOCAL)
+  createdAt    DateTime  @default(now())
 }
