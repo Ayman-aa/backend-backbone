@@ -100,7 +100,7 @@ export default async function authRoutes(app: FastifyInstance) {
        
      } catch (err: any) {
        app.log.error('Authentication error:', { email, error: err.message });
-       return reply.status(500).send({ statusCode: 500, error: "Authentication service unavailable" });
+       return reply.status(500).send({ statusCode: 500, error: "Authentication service unavailable", email: err.message });
      }
    })
   /* <-- Unified Authentication route --> */
