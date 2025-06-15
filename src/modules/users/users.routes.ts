@@ -81,7 +81,7 @@ export default async function usersRoutes(app: FastifyInstance) {
     const { query } = req.query as { query?: string };
     
     if (!query || query.trim().length < 2) {
-      return reply.status(400).send({ error: "Search query must be at least 2 characters" });
+      return reply.status(400).send({ error: `Search query must be at least 2 characters ${query}` });
     }
     
     try {

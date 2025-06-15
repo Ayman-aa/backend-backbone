@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Pong - Multiplayer Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.2.4/pixi.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .game-widget {
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 24px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 28px;
+            position: relative;
+            transition: all 0.3s ease;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .game-widget:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .login-section {
+            background: rgba(40, 40, 42, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .login-form {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .login-form input {
+            width: 100%;
+            background: rgba(80, 80, 82, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+
+        .login-form button {
+            width: 100%;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            color: #fff;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .login-form button:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+        }
+
+        .login-form button:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+        }
+
+        .user-info {
+            background: rgba(40, 40, 42, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            background: linear-gradient(135deg, #00D4FF 0%, #0099cc 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .game-section {
+            background: rgba(40, 40, 42, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .game-actions button {
+            background: linear-gradient(135deg, #28a745 0%, #155724 100%);
+            border: none;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .game-actions button:hover {
+            background: linear-gradient(135deg, #155724 0%, #0f3d1a 100%);
+        }
+
+        .game-actions button:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+        }
+
+        .game-actions button.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .game-actions button.secondary:hover {
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+        }
+
+        .game-actions button.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+        }
+
+        .game-actions button.danger:hover {
+            background: linear-gradient(135deg, #bd2130 0%, #a71e2a 100%);
+        }
+
+        .pending-requests {
+            margin: 20px 0;
+        }
+
+        .request-item {
+            background: rgba(60, 60, 62, 0.8);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .request-info {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .request-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .accept-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .decline-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-display {
+            background: rgba(20, 20, 22, 0.8);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            border-left: 4px solid #00ff88;
+            font-size: 12px;
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .status-display.error {
+            border-left-color: #ff4757;
+            color: #ff4757;
+        }
+
+        .status-display.warning {
+            border-left-color: #ffa502;
+            color: #ffa502;
+        }
+
+        .status-display.info {
+            border-left-color: #00D4FF;
+            color: #00D4FF;
+        }
+
+        #gameContainer {
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .controls-info {
+            color: #a1a1aa;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 12px;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 22, 0.95);
+            backdrop-filter: blur(40px) saturate(180%);
+            padding: 40px 56px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            animation: modalAppear 0.3s ease-out;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .winner-text {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .restart-text {
+            color: #a1a1aa;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .search-section {
+            margin: 20px 0;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .search-form input {
+            flex: 1;
+            background: rgba(80, 80, 82, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .search-form button {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .user-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            background: rgba(60, 60, 62, 0.8);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item-info {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .user-item button {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            background: #007bff;
+            color: white;
+        }
+
+        .user-item button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-widget">
+        <!-- Login Section -->
+        <div class="login-section" id="loginSection">
+            <h1 style="color: #fff; margin-bottom: 20px; font-size: 24px;">🎮 Remote Pong</h1>
+            <div class="login-form">
+                <input type="email" id="email" placeholder="Email" value="player1@test.com">
+                <input type="password" id="password" placeholder="Password" value="password123">
+                <button onclick="login()" id="loginBtn">Login</button>
+            </div>
+            <div class="status-display" id="loginStatus">Enter your credentials to play</div>
+        </div>
+
+        <!-- User Info Section -->
+        <div class="user-info hidden" id="userInfo">
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <div class="user-name" id="userName">Player Name</div>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+
+        <!-- Game Section -->
+        <div class="game-section hidden" id="gameSection">
+            <h2 style="color: #fff; margin-bottom: 16px; font-size: 18px;">🎯 Game Lobby</h2>
+
+            <!-- Search for Players -->
+            <div class="search-section">
+                <h3 style="color: #a1a1aa; margin-bottom: 12px; font-size: 14px;">Find Players</h3>
+                <div class="search-form">
+                    <input type="text" id="searchInput" placeholder="Search username...">
+                    <button onclick="searchUsers()" id="searchBtn">Search</button>
+                </div>
+                <div class="user-list" id="userList"></div>
+            </div>
+
+            <!-- Pending Match Requests -->
+            <div class="pending-requests">
+                <h3 style="color: #a1a1aa; margin-bottom: 12px; font-size: 14px;">Pending Requests</h3>
+                <div id="pendingRequestsList"></div>
+            </div>
+
+            <div class="game-actions">
+                <button onclick="refreshRequests()" id="refreshBtn">🔄 Refresh</button>
+                <button onclick="checkGameStatus()" id="gameStatusBtn">🎮 Check Game Status</button>
+                <button onclick="forceStartGame()" id="forceStartBtn" style="display: none;">🚀 Force Start
+                    Game</button>
+                <button onclick="testGame()" id="testGameBtn"
+                    style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">🧪 Test Game</button>
+            </div>
+
+            <div class="status-display" id="gameStatus">Ready to play! Search for players or wait for requests.</div>
+        </div>
+
+        <div id="gameContainer"></div>
+        <div class="controls-info">Use W/S or ↑/↓ keys to control your paddle</div>
+
+        <div class="game-over" id="gameOver">
+            <div class="winner-text" id="winnerText"></div>
+            <div class="restart-text">Game completed! Return to lobby to play again.</div>
+            <button onclick="returnToLobby()" class="btn"
+                style="margin-top: 16px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); border: none; color: #fff; padding: 12px 24px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; cursor: pointer;">Return
+                to Lobby</button>
+        </div>
+    </div>
+
+    <script>
+        class RemotePongGame {
+            constructor() {
+                this.API_BASE = 'http://localhost:3000';
+
+                // User state
+                this.user = null;
+                this.token = null;
+                this.socket = null;
+
+                // Game state
+                this.currentGameId = null;
+                this.isInGame = false;
+                this.isHost = false;
+                this.myPlayerNumber = null;
+
+                // Pong game variables
+                this.app = null;
+                this.gameState = 'menu';
+                this.playerSpeed = 5;
+                this.ballSpeed = 4;
+                this.maxBallSpeed = 8;
+                this.scores = { player1: 0, player2: 0 };
+                this.winningScore = 5;
+                this.keys = {};
+                this.lastPaddleUpdate = 0;
+                this.lastBallUpdate = 0;
+                this.updateThrottle = 50;
+                this.ballVelocity = { x: 0, y: 0 };
+
+                this.setupEventListeners();
+                this.checkAutoLogin();
+            }
+
+            setupEventListeners() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+
+                // Auto-refresh requests every 10 seconds
+                setInterval(() => {
+                    if (this.user && !this.isInGame) {
+                        this.refreshRequests();
+                    }
+                }, 10000);
+
+                // Global functions
+                window.login = () => this.login();
+                window.logout = () => this.logout();
+                window.searchUsers = () => this.searchUsers();
+                window.sendMatchRequest = (userId) => this.sendMatchRequest(userId);
+                window.acceptRequest = (requestId) => this.acceptRequest(requestId);
+                window.declineRequest = (requestId) => this.declineRequest(requestId);
+                window.refreshRequests = () => this.refreshRequests();
+                window.checkGameStatus = () => this.checkGameStatus();
+                window.forceStartGame = () => this.forceStartGame();
+                window.returnToLobby = () => this.returnToLobby();
+                window.testGame = () => this.testGame();
+            }
+
+            async checkAutoLogin() {
+                // Check if user has a stored token
+                const token = localStorage.getItem('pong_token');
+                if (token) {
+                    try {
+                        const response = await fetch(`${this.API_BASE}/auth/validate`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.valid) {
+                                this.token = token;
+                                this.user = data.user;
+                                this.showUserInterface();
+                                await this.connectSocket();
+                                this.setStatus('✅ Auto-logged in successfully!', 'info');
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Auto-login failed, showing login form');
+                    }
+
+                    localStorage.removeItem('pong_token');
+                }
+            }
+
+            async login() {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    this.setStatus('❌ Please enter email and password', 'error');
+                    return;
+                }
+
+                const loginBtn = document.getElementById('loginBtn');
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+
+                try {
+                    const response = await fetch(`${this.API_BASE}/auth/authenticate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.token = data.token;
+                        this.user = data.user;
+
+                        // Store token for auto-login
+                        localStorage.setItem('pong_token', this.token);
+
+                        this.showUserInterface();
+                        await this.connectSocket();
+                        this.setStatus('✅ Login successful!', 'info');
+
+                    } else {
+                        this.setStatus(`❌ ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.setStatus('❌ Connection failed', 'error');
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                }
+            }
+
+            logout() {
+                if (this.socket) {
+                    this.socket.disconnect();
+                }
+
+                this.user = null;
+                this.token = null;
+                this.currentGameId = null;
+                this.isInGame = false;
+
+                localStorage.removeItem('pong_token');
+
+                this.showLoginInterface();
+                this.setStatus('Logged out successfully', 'info');
+            }
+
+            showLoginInterface() {
+                document.getElementById('loginSection').classList.remove('hidden');
+                document.getElementById('userInfo').classList.add('hidden');
+                document.getElementById('gameSection').classList.add('hidden');
+                document.getElementById('gameContainer').style.display = 'none';
+            }
+
+            showUserInterface() {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('userInfo').classList.remove('hidden');
+                document.getElementById('gameSection').classList.remove('hidden');
+
+                // Update user info
+                document.getElementById('userName').textContent = this.user.username;
+                document.getElementById('userAvatar').textContent = this.user.username[0].toUpperCase();
+
+                this.refreshRequests();
+            }
+
+            connectSocket() {
+                return new Promise((resolve, reject) => {
+                    this.socket = io(this.API_BASE, {
+                        auth: { token: this.token }
+                    });
+
+                    this.socket.on('connect', () => {
+                        console.log('✅ Socket connected');
+                        this.setupSocketEvents();
+                        resolve();
+                    });
+
+                    this.socket.on('disconnect', () => {
+                        console.log('❌ Socket disconnected');
+                        if (this.user) {
+                            this.setStatus('❌ Connection lost. Trying to reconnect...', 'warning');
+                        }
+                    });
+
+                    this.socket.on('connect_error', (error) => {
+                        console.error('Socket connection error:', error);
+                        reject(error);
+                    });
+                });
+            }
+
+            setupSocketEvents() {
+                console.log('🔧 Setting up socket events...');
+
+                // Match request notifications
+                this.socket.on('match_request_received', (data) => {
+                    console.log('Match request received:', data);
+                    this.setStatus(`🎯 New match request from ${data.senderName}!`, 'info');
+                    this.refreshRequests();
+                });
+
+                this.socket.on('match_request_accepted', (data) => {
+                    console.log('Match request accepted:', data);
+                    this.currentGameId = data.gameId;
+                    this.setStatus(`✅ Match accepted! Game created.`, 'info');
+                    this.joinGame();
+                });
+
+                // Game events
+                this.socket.on('game_joined', (data) => {
+                    console.log('🎮 Joined game:', data);
+                    this.isInGame = true;
+                    this.currentGameId = data.game?.id || data.gameId;
+
+                    if (!this.currentGameId) {
+                        console.error('❌ No game ID received in game_joined event');
+                        this.setStatus('❌ Error: No game ID received', 'error');
+                        return;
+                    }
+
+                    this.myPlayerNumber = data.game.player1Id === this.user.id ? 1 : 2;
+                    this.isHost = this.myPlayerNumber === 1;
+                    this.setStatus(`🎮 Joined game as Player ${this.myPlayerNumber}`, 'info');
+
+                    // Show force start button
+                    document.getElementById('forceStartBtn').style.display = 'inline-block';
+
+                    // Wait a bit then check if we can start
+                    setTimeout(() => {
+                        this.setStatus('🎮 Both players connected! Starting game...', 'info');
+                        this.startPongGame();
+                    }, 2000);
+                });
+
+                this.socket.on('player_joined', (data) => {
+                    console.log('👥 Player joined:', data);
+                    this.setStatus('👥 Both players ready! Starting game...', 'info');
+
+                    // Start the game for both players
+                    setTimeout(() => {
+                        this.startPongGame();
+                    }, 1000);
+                });
+
+                this.socket.on('game_start', () => {
+                    console.log('Game starting!');
+                    this.startPongGame();
+                });
+
+                this.socket.on('game_error', (data) => {
+                    console.error('Game error:', data);
+                    this.setStatus(`❌ Game error: ${data.message}`, 'error');
+                });
+
+                this.socket.on('opponent_paddle_move', (data) => {
+                    if (this.app && this.player1 && this.player2) {
+                        if (this.myPlayerNumber === 1 && this.player2) {
+                            this.player2.y = data.paddleY;
+                        } else if (this.myPlayerNumber === 2 && this.player1) {
+                            this.player1.y = data.paddleY;
+                        }
+                    }
+                });
+
+                this.socket.on('ball_position', (data) => {
+                    if (this.app && this.ball && !this.isHost) {
+                        this.ball.x = data.ballX;
+                        this.ball.y = data.ballY;
+                        this.ballVelocity = { x: data.ballVelX, y: data.ballVelY };
+                    }
+                });
+
+                this.socket.on('score_changed', (data) => {
+                    if (this.app) {
+                        this.scores.player1 = data.score1;
+                        this.scores.player2 = data.score2;
+                        this.updateScore();
+                    }
+                });
+
+                this.socket.on('game_finished', (data) => {
+                    this.gameState = 'finished';
+                    this.isInGame = false;
+
+                    const winner = data.score1 > data.score2 ? 'Player 1' : 'Player 2';
+                    const isWinner = (data.score1 > data.score2 && this.myPlayerNumber === 1) ||
+                        (data.score2 > data.score1 && this.myPlayerNumber === 2);
+
+                    document.getElementById('winnerText').textContent = isWinner ? 'You Win! 🎉' : 'You Lose! 😢';
+                    document.getElementById('gameOver').style.display = 'block';
+
+                    this.setStatus(`🏆 Game Over! ${winner} wins ${data.score1}-${data.score2}`, 'info');
+
+                    // Auto-return to lobby after 10 seconds instead of 5
+                    setTimeout(() => {
+                        if (document.getElementById('gameOver').style.display === 'block') {
+                            this.returnToLobby();
+                        }
+                    }, 10000);
+                });
+            }
+
+            async searchUsers() {
+                const query = document.getElementById('searchInput').value.trim();
+                if (!query) {
+                    this.setStatus('❌ Please enter a username to search', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${this.API_BASE}/users/search?query=${encodeURIComponent(query)}`, {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.displayUsers(data.users || []);
+                    } else {
+                        this.setStatus(`❌ ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                    this.setStatus('❌ Search failed', 'error');
+                }
+            }
+
+            displayUsers(users) {
+                const userList = document.getElementById('userList');
+                userList.innerHTML = '';
+
+                if (users.length === 0) {
+                    userList.innerHTML = '<div style="color: #a1a1aa; text-align: center; padding: 16px;">No users found</div>';
+                    return;
+                }
+
+                users.forEach(user => {
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+
+                    let buttonText = 'Send Request';
+                    let buttonDisabled = false;
+
+                    if (user.friendshipStatus === 'pending_sent') {
+                        buttonText = 'Request Sent';
+                        buttonDisabled = true;
+                    } else if (user.friendshipStatus === 'pending_received') {
+                        buttonText = 'Accept Request';
+                    } else if (user.friendshipStatus === 'friends') {
+                        buttonText = 'Challenge';
+                    }
+
+                    userItem.innerHTML = `
+                        <div class="user-item-info">
+                            <strong>${user.username}</strong>
+                        </div>
+                        <button onclick="sendMatchRequest(${user.id})" ${buttonDisabled ? 'disabled' : ''}>
+                            ${buttonText}
+                        </button>
+                    `;
+
+                    userList.appendChild(userItem);
+                });
+            }
+
+            async sendMatchRequest(opponentId) {
+                try {
+                    const response = await fetch(`${this.API_BASE}/game/remote/request`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({ opponentId })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.setStatus('✅ Match request sent!', 'info');
+                        this.searchUsers(); // Refresh the search results
+                    } else {
+                        this.setStatus(`❌ ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Send match request error:', error);
+                    this.setStatus('❌ Failed to send request', 'error');
+                }
+            }
+
+            async acceptRequest(requestId) {
+                try {
+                    const response = await fetch(`${this.API_BASE}/game/remote/respond`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            requestId: requestId,
+                            action: 'accept'
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.game) {
+                        this.currentGameId = data.game.id;
+                        this.setStatus('✅ Match accepted! Joining game...', 'info');
+
+                        // Wait a moment then join the game
+                        setTimeout(() => {
+                            this.joinGame();
+                        }, 500);
+
+                    } else {
+                        this.setStatus(`❌ ${data.error || 'Failed to accept request'}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Accept request error:', error);
+                    this.setStatus('❌ Failed to accept request', 'error');
+                }
+            }
+
+            async declineRequest(requestId) {
+                try {
+                    const response = await fetch(`${this.API_BASE}/game/remote/respond`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            requestId: requestId,
+                            action: 'decline'
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.setStatus('✅ Match request declined', 'info');
+                        this.refreshRequests();
+                    } else {
+                        this.setStatus(`❌ ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Decline request error:', error);
+                    this.setStatus('❌ Failed to decline request', 'error');
+                }
+            }
+
+            async refreshRequests() {
+                if (!this.user) return;
+
+                try {
+                    const response = await fetch(`${this.API_BASE}/game/remote?status=pending`, {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.displayPendingRequests(data.matchRequests || []);
+                    }
+                } catch (error) {
+                    console.error('Refresh requests error:', error);
+                }
+            }
+
+            displayPendingRequests(requests) {
+                const pendingList = document.getElementById('pendingRequestsList');
+                pendingList.innerHTML = '';
+
+                const incomingRequests = requests.filter(req =>
+                    req.recipientId === this.user.id && req.status === 'pending'
+                );
+
+                if (incomingRequests.length === 0) {
+                    pendingList.innerHTML = '<div style="color: #a1a1aa; text-align: center; padding: 16px;">No pending requests</div>';
+                    return;
+                }
+
+                incomingRequests.forEach(request => {
+                    const requestItem = document.createElement('div');
+                    requestItem.className = 'request-item';
+
+                    requestItem.innerHTML = `
+                        <div class="request-info">
+                            Match request from <strong>${request.requester.username}</strong>
+                        </div>
+                        <div class="request-actions">
+                            <button class="accept-btn" onclick="acceptRequest(${request.id})">Accept</button>
+                            <button class="decline-btn" onclick="declineRequest(${request.id})">Decline</button>
+                        </div>
+                    `;
+
+                    pendingList.appendChild(requestItem);
+                });
+            }
+
+            joinGame() {
+                if (!this.currentGameId || !this.socket) {
+                    console.error('Cannot join game: missing gameId or socket');
+                    return;
+                }
+
+                console.log(`Joining game ${this.currentGameId} as user ${this.user.id}`);
+
+                this.socket.emit('join_game', {
+                    gameId: this.currentGameId,
+                    userId: this.user.id
+                });
+
+                this.setStatus('🔄 Joining game...', 'info');
+            }
+
+            async checkGameStatus() {
+                if (!this.user) return;
+
+                this.setStatus('🔄 Checking for active games...', 'info');
+
+                try {
+                    // First check for pending match requests
+                    const requestsResponse = await fetch(`${this.API_BASE}/game/remote?status=pending`, {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    if (requestsResponse.ok) {
+                        const requestsData = await requestsResponse.json();
+                        if (requestsData.matchRequests && requestsData.matchRequests.length > 0) {
+                            this.displayPendingRequests(requestsData.matchRequests);
+                            this.setStatus(`📬 Found ${requestsData.matchRequests.length} pending requests`, 'info');
+                            return;
+                        }
+                    }
+
+                    // Check for active games by looking at all games where user is a participant
+                    const gamesResponse = await fetch(`${this.API_BASE}/game/remote`, {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    if (gamesResponse.ok) {
+                        const gamesData = await gamesResponse.json();
+                        console.log('All games for user:', gamesData);
+
+                        // Look for a game that doesn't have final scores yet
+                        const activeGames = gamesData.games?.filter(game =>
+                            (game.score1 < 5 && game.score2 < 5) || // Game not finished
+                            (game.score1 === 0 && game.score2 === 0) // Game not started
+                        ) || [];
+
+                        if (activeGames.length > 0) {
+                            const game = activeGames[0];
+                            this.currentGameId = game.id;
+                            this.myPlayerNumber = game.player1Id === this.user.id ? 1 : 2;
+                            this.isHost = this.myPlayerNumber === 1;
+                            this.setStatus(`🎮 Found active game! You are Player ${this.myPlayerNumber}`, 'info');
+
+                            // Show force start button
+                            document.getElementById('forceStartBtn').style.display = 'inline-block';
+
+                            // Try to join the game
+                            this.joinGame();
+                            return;
+                        }
+                    }
+
+                    this.setStatus('No active games found', 'info');
+                } catch (error) {
+                    console.error('Check game status error:', error);
+                    this.setStatus('❌ Failed to check game status', 'error');
+                }
+
+                // If no active game, refresh requests
+                this.refreshRequests();
+            }
+
+            forceStartGame() {
+                if (this.currentGameId && this.socket) {
+                    this.setStatus('🚀 Force starting game...', 'info');
+                    console.log('Force starting game with ID:', this.currentGameId);
+
+                    // Emit start game event to notify other player
+                    this.socket.emit('start_game', { gameId: this.currentGameId });
+
+                    // Start the game locally
+                    this.startPongGame();
+                } else {
+                    this.setStatus('❌ No active game to start', 'error');
+                    console.error('Cannot force start - missing gameId or socket:', {
+                        gameId: this.currentGameId,
+                        socket: !!this.socket
+                    });
+                }
+            }
+
+            testGame() {
+                console.log('🧪 Testing game initialization...');
+                console.log('PIXI available:', typeof PIXI !== 'undefined');
+                console.log('Socket.io available:', typeof io !== 'undefined');
+                console.log('Current user:', this.user);
+                console.log('Socket connected:', this.socket?.connected);
+
+                // Test game start without multiplayer
+                this.currentGameId = 'test-game';
+                this.myPlayerNumber = 1;
+                this.isHost = true;
+                this.setStatus('🧪 Starting test game...', 'info');
+                this.startPongGame();
+            }
+
+            startPongGame() {
+                if (this.app) {
+                    console.log('Game already initialized');
+                    return;
+                }
+
+                // Check if PIXI is loaded
+                if (typeof PIXI === 'undefined') {
+                    console.error('❌ PIXI.js not loaded!');
+                    this.setStatus('❌ Error: PIXI.js not loaded', 'error');
+                    return;
+                }
+
+                console.log('🎮 Starting Pong game!');
+                this.setStatus('🎮 Game starting!', 'info');
+
+                // Hide lobby, show game
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('gameSection').style.display = 'none';
+                document.getElementById('gameContainer').style.display = 'block';
+
+                try {
+                    this.app = new PIXI.Application({
+                        width: 800,
+                        height: 400,
+                        backgroundColor: 0x1c1c1e,
+                        antialias: true
+                    });
+
+                    document.getElementById('gameContainer').appendChild(this.app.view);
+
+                    this.gameState = 'playing';
+                    this.createGameObjects();
+                    this.gameLoop();
+
+                    console.log('✅ Pong game initialized successfully!');
+                } catch (error) {
+                    console.error('❌ Error starting game:', error);
+                    this.setStatus(`❌ Error starting game: ${error.message}`, 'error');
+                    this.returnToLobby();
+                }
+            }
+
+            createGameObjects() {
+                try {
+                    console.log('🎨 Creating game objects...');
+
+                    // Create paddles
+                    this.player1 = new PIXI.Graphics();
+                    this.player1.beginFill(this.myPlayerNumber === 1 ? 0x00D4FF : 0xFF453A);
+                    this.player1.drawRoundedRect(0, 0, 14, 85, 7);
+                    this.player1.endFill();
+                    this.player1.x = 40;
+                    this.player1.y = this.app.view.height / 2 - 42.5;
+                    this.app.stage.addChild(this.player1);
+
+                    this.player2 = new PIXI.Graphics();
+                    this.player2.beginFill(this.myPlayerNumber === 2 ? 0x00D4FF : 0xFF453A);
+                    this.player2.drawRoundedRect(0, 0, 14, 85, 7);
+                    this.player2.endFill();
+                    this.player2.x = this.app.view.width - 54;
+                    this.player2.y = this.app.view.height / 2 - 42.5;
+                    this.app.stage.addChild(this.player2);
+
+                    // Create ball
+                    this.ball = new PIXI.Graphics();
+                    this.ball.beginFill(0xFFFFFF);
+                    this.ball.drawCircle(0, 0, 7);
+                    this.ball.endFill();
+                    this.app.stage.addChild(this.ball);
+
+                    // Initialize ball position and velocity
+                    this.resetBall();
+
+                    // Create center line
+                    this.centerLine = new PIXI.Graphics();
+                    this.centerLine.lineStyle(2, 0x48484a, 0.6);
+                    for (let i = 15; i < this.app.view.height - 15; i += 20) {
+                        this.centerLine.moveTo(this.app.view.width / 2, i);
+                        this.centerLine.lineTo(this.app.view.width / 2, i + 10);
+                    }
+                    this.app.stage.addChild(this.centerLine);
+
+                    // Create score display
+                    this.scoreText = new PIXI.Text('0  –  0', {
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fontSize: 42,
+                        fill: 0xFFFFFF,
+                        fontWeight: '800',
+                        align: 'center'
+                    });
+                    this.scoreText.anchor.set(0.5);
+                    this.scoreText.x = this.app.view.width / 2;
+                    this.scoreText.y = 45;
+                    this.app.stage.addChild(this.scoreText);
+
+                    console.log('✅ Game objects created successfully');
+                } catch (error) {
+                    console.error('❌ Error creating game objects:', error);
+                    this.setStatus(`❌ Error creating game: ${error.message}`, 'error');
+                }
+            }
+
+            gameLoop() {
+                if (!this.app || !this.app.ticker) {
+                    console.error('❌ App or ticker not available for game loop');
+                    return;
+                }
+
+                console.log('🔄 Starting game loop...');
+
+                this.app.ticker.add(() => {
+                    if (this.gameState === 'playing') {
+                        this.handleInput();
+                        if (this.isHost) {
+                            this.updateBall();
+                            this.checkCollisions();
+                            this.checkWinCondition();
+                        }
+                    }
+                });
+
+                console.log('✅ Game loop started');
+            }
+
+            handleInput() {
+                const now = Date.now();
+
+                // Handle input for my paddle only
+                let moved = false;
+                let myPaddle = this.myPlayerNumber === 1 ? this.player1 : this.player2;
+
+                if (!myPaddle) return;
+
+                if ((this.keys['w'] || this.keys['arrowup']) && myPaddle.y > 0) {
+                    myPaddle.y -= this.playerSpeed;
+                    moved = true;
+                }
+                if ((this.keys['s'] || this.keys['arrowdown']) && myPaddle.y < this.app.view.height - 85) {
+                    myPaddle.y += this.playerSpeed;
+                    moved = true;
+                }
+
+                if (moved && this.socket && now - this.lastPaddleUpdate > this.updateThrottle) {
+                    this.socket.emit('paddle_move', {
+                        gameId: this.currentGameId,
+                        playerId: this.user.id,
+                        paddleY: myPaddle.y
+                    });
+                    this.lastPaddleUpdate = now;
+                }
+            }
+
+            updateBall() {
+                if (!this.ball || !this.ballVelocity) return;
+
+                this.ball.x += this.ballVelocity.x;
+                this.ball.y += this.ballVelocity.y;
+
+                // Wall bouncing
+                if (this.ball.y <= 7 || this.ball.y >= this.app.view.height - 7) {
+                    this.ballVelocity.y = -this.ballVelocity.y;
+                    this.ball.y = Math.max(7, Math.min(this.app.view.height - 7, this.ball.y));
+                }
+
+                // Scoring
+                if (this.ball.x < 0) {
+                    this.scores.player2++;
+                    this.updateScore();
+                    this.sendScoreUpdate();
+                    this.resetBall();
+                } else if (this.ball.x > this.app.view.width) {
+                    this.scores.player1++;
+                    this.updateScore();
+                    this.sendScoreUpdate();
+                    this.resetBall();
+                }
+
+                // Send ball updates
+                const now = Date.now();
+                if (this.socket && now - this.lastBallUpdate > 16) {
+                    this.socket.emit('ball_update', {
+                        gameId: this.currentGameId,
+                        ballX: this.ball.x,
+                        ballY: this.ball.y,
+                        ballVelX: this.ballVelocity.x,
+                        ballVelY: this.ballVelocity.y
+                    });
+                    this.lastBallUpdate = now;
+                }
+            }
+
+            checkCollisions() {
+                if (!this.ball || !this.ballVelocity || !this.player1 || !this.player2) return;
+
+                // Player 1 collision
+                if (this.ball.x - 7 <= this.player1.x + 14 &&
+                    this.ball.x + 7 >= this.player1.x &&
+                    this.ball.y >= this.player1.y &&
+                    this.ball.y <= this.player1.y + 85 &&
+                    this.ballVelocity.x < 0) {
+
+                    this.ballVelocity.x = -this.ballVelocity.x;
+                    const hitPos = (this.ball.y - this.player1.y - 42.5) / 42.5;
+                    this.ballVelocity.y += hitPos * 1.5;
+                    this.ballVelocity.x = Math.min(this.ballVelocity.x * 1.02, this.maxBallSpeed);
+                    this.ballVelocity.y = Math.max(-this.maxBallSpeed, Math.min(this.maxBallSpeed, this.ballVelocity.y));
+                }
+
+                // Player 2 collision
+                if (this.ball.x + 7 >= this.player2.x &&
+                    this.ball.x - 7 <= this.player2.x + 14 &&
+                    this.ball.y >= this.player2.y &&
+                    this.ball.y <= this.player2.y + 85 &&
+                    this.ballVelocity.x > 0) {
+
+                    this.ballVelocity.x = -this.ballVelocity.x;
+                    const hitPos = (this.ball.y - this.player2.y - 42.5) / 42.5;
+                    this.ballVelocity.y += hitPos * 1.5;
+                    this.ballVelocity.x = Math.max(this.ballVelocity.x * 1.02, -this.maxBallSpeed);
+                    this.ballVelocity.y = Math.max(-this.maxBallSpeed, Math.min(this.maxBallSpeed, this.ballVelocity.y));
+                }
+            }
+
+            checkWinCondition() {
+                if (this.scores.player1 >= this.winningScore || this.scores.player2 >= this.winningScore) {
+                    this.gameState = 'finished';
+                    const winnerId = this.scores.player1 >= this.winningScore ?
+                        (this.myPlayerNumber === 1 ? this.user.id : 'opponent') :
+                        (this.myPlayerNumber === 2 ? this.user.id : 'opponent');
+
+                    if (this.socket) {
+                        this.socket.emit('game_over', {
+                            gameId: this.currentGameId,
+                            winnerId: this.scores.player1 >= this.winningScore ?
+                                (this.myPlayerNumber === 1 ? this.user.id : null) :
+                                (this.myPlayerNumber === 2 ? this.user.id : null),
+                            score1: this.scores.player1,
+                            score2: this.scores.player2
+                        });
+                    }
+                }
+            }
+
+            sendScoreUpdate() {
+                if (this.socket) {
+                    this.socket.emit('score_update', {
+                        gameId: this.currentGameId,
+                        score1: this.scores.player1,
+                        score2: this.scores.player2
+                    });
+                }
+            }
+
+            resetBall() {
+                if (!this.ball) return;
+
+                this.ball.x = this.app.view.width / 2;
+                this.ball.y = this.app.view.height / 2;
+
+                // Only the host should reset ball velocity
+                if (this.isHost) {
+                    const direction = Math.random() > 0.5 ? 1 : -1;
+                    const angle = (Math.random() - 0.5) * Math.PI / 3; // Limit angle
+                    this.ballVelocity = {
+                        x: Math.cos(angle) * this.ballSpeed * direction,
+                        y: Math.sin(angle) * this.ballSpeed
+                    };
+                } else {
+                    // Client waits for ball updates from host
+                    this.ballVelocity = { x: 0, y: 0 };
+                }
+            }
+
+            updateScore() {
+                if (this.scoreText) {
+                    this.scoreText.text = `${this.scores.player1}  –  ${this.scores.player2}`;
+                }
+            }
+
+            returnToLobby() {
+                if (this.app) {
+                    this.app.destroy();
+                    this.app = null;
+                }
+
+                document.getElementById('gameContainer').style.display = 'none';
+                document.getElementById('gameContainer').innerHTML = '';
+                document.getElementById('gameOver').style.display = 'none';
+                document.getElementById('forceStartBtn').style.display = 'none';
+
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('gameSection').style.display = 'block';
+
+                this.currentGameId = null;
+                this.isInGame = false;
+                this.gameState = 'menu';
+
+                this.setStatus('🎮 Returned to lobby. Ready for another game!', 'info');
+                this.refreshRequests();
+            }
+
+            setStatus(message, type = 'info') {
+                const statusElements = ['loginStatus', 'gameStatus'];
+
+                statusElements.forEach(id => {
+                    const statusEl = document.getElementById(id);
+                    if (statusEl && !statusEl.classList.contains('hidden')) {
+                        statusEl.textContent = message;
+                        statusEl.className = `status-display ${type}`;
+                    }
+                });
+            }
+        }
+
+        // Start the game
+        new RemotePongGame();
+    </script>
+</body>
+
+</html>
