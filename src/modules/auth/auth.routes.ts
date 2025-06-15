@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 const bcrypt = require("bcrypt");
 import { generateRandomUsername, checkLoginAttempts, recordFailedLogin, clearLoginAttempts, prisma } from '../../utils/prisma';
 import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
 
 /* 
   Q: When JWT expires, what happens?
