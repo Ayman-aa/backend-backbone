@@ -48,7 +48,7 @@ model Block {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
+  id           Int            @id @default(autoincrement()) 
   email        String         @unique
   password     String
   username     String         @unique
@@ -68,6 +68,11 @@ model User {
   gamesAsPlayer1   Game[]        @relation("Player1")
   gamesAsPlayer2   Game[]        @relation("Player2")
   gamesWon         Game[]        @relation("GameWinner")
+  
+  tournamentsOwned  Tournament[]
+  
+  remoteRequestsSent     RemoteMatchRequest[] @relation("RemoteRequester")
+  remoteRequestsReceived RemoteMatchRequest[] @relation("RemoteRecipient")
 }
 
 model RefreshToken {
@@ -113,4 +118,27 @@ model Game {
   winner       User?     @relation("GameWinner", fields: [winnerId], references: [id])
   mode         GameMode  @default(LOCAL)
   createdAt    DateTime  @default(now())
+  
+  tournament   Tournament? @relation("TournamentGames", fields: [tournamentId], references: [id])
+  tournamentId Int?
 }
+
+model Tournament {
+  id         Int      @id @default(autoincrement())
+  name       String
+  ownerId    Int
+  owner      User      @relation(fields: [ownerId], references: [id])
+  games      Game[]    @relation("TournamentGames")
+  createdAt  DateTime  @default(now())
+}
+
+model RemoteMatchRequest {
+  id           Int      @id @default(autoincrement())
+  requester    User     @relation("RemoteRequester", fields: [requesterId], references: [id])
+  requesterId  Int
+  recipient    User     @relation("RemoteRecipient", fields: [recipientId], references: [id])
+  recipientId  Int
+  status       String   @default("pending") // "pending" | "accepted" | "declined"
+  createdAt    DateTime @default(now())
+}
+

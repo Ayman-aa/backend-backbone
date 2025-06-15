@@ -85,8 +85,8 @@ export default async function authRoutes(app: FastifyInstance) {
        reply.setCookie("refreshToken", refreshToken, {
          path: "/",
          httpOnly: false,
-         secure: false,
-         sameSite: "lax",
+         secure: true,
+         sameSite: "none",
          maxAge: 7 * 24 * 3600
        });
        
@@ -160,8 +160,8 @@ export default async function authRoutes(app: FastifyInstance) {
       reply.setCookie("refreshToken", result.newRefreshToken, {
         path: "/",
         httpOnly: false,
-        secure: false,
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
         maxAge: 7 * 24 * 3600
       });
   
@@ -202,8 +202,8 @@ export default async function authRoutes(app: FastifyInstance) {
     reply.clearCookie("refreshToken", {
       path: "/",
       httpOnly: false,
-      secure: false,        // Must be true for cross-origin
-      sameSite: "lax",    // Required for cross-origin
+      secure: true,        // Must be true for cross-origin
+      sameSite: "none",    // Required for cross-origin
       maxAge: 7 * 24 * 3600
     });
     return reply.send({ message: "Logout successful" });
@@ -253,8 +253,8 @@ export default async function authRoutes(app: FastifyInstance) {
       reply.setCookie("refreshToken", refreshToken, {
         path: "/",
         httpOnly: false,
-        secure: false,        // Must be true for cross-origin
-        sameSite: "lax",    // Required for cross-origin
+        secure: true,        // Must be true for cross-origin
+        sameSite: "none",    // Required for cross-origin
         maxAge: 7 * 24 * 3600
       })
       

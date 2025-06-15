@@ -250,7 +250,7 @@ app.post("/refresh", {
       path: "/",
       httpOnly: true, // Should be httpOnly for security
       secure: process.env.NODE_ENV === 'production',
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 7 * 24 * 3600
     });
 
