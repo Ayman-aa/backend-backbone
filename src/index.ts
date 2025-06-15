@@ -43,7 +43,7 @@ app.register(fastifyStatic, {
 });
 
 app.register(rateLimit, {
-  max: 10,
+  max: 200,
   timeWindow: "1 minute",
   addHeaders: {
     "x-ratelimit-limit": true,
