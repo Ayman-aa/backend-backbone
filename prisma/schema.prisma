@@ -111,6 +111,9 @@ model Game {
 
   player2Name  String?   // Only used if player2 is NOT a registered user
 
+  tournamentPlayer1Name String?  // For tournament local players
+  tournamentPlayer2Name String?  // For tournament local players
+  
   score1       Int
   score2       Int
 
@@ -119,8 +122,8 @@ model Game {
   mode         GameMode  @default(LOCAL)
   createdAt    DateTime  @default(now())
   
-  tournament   Tournament? @relation("TournamentGames", fields: [tournamentId], references: [id])
   tournamentId Int?
+  tournament   Tournament? @relation("TournamentGames", fields: [tournamentId], references: [id])
 }
 
 model Tournament {
@@ -130,6 +133,9 @@ model Tournament {
   owner      User      @relation(fields: [ownerId], references: [id])
   games      Game[]    @relation("TournamentGames")
   createdAt  DateTime  @default(now())
+  
+  status     String    @default("REGISTRATION")  // "REGISTRATION", "IN_PROGRESS", "COMPLETED"
+  maxPlayers Int       @default(8)
 }
 
 model RemoteMatchRequest {
