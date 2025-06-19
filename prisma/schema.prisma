@@ -102,8 +102,8 @@ enum GameMode {
 
 model Game {
   id           Int       @id @default(autoincrement())
-  player1      User      @relation("Player1", fields: [player1Id], references: [id])
-  player1Id    Int
+  player1      User?      @relation("Player1", fields: [player1Id], references: [id])
+  player1Id    Int?
 
   // player2 is optional: not a real user for local games
   player2      User?     @relation("Player2", fields: [player2Id], references: [id])
