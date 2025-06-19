@@ -165,9 +165,58 @@ export default async function tournament(app: FastifyInstance) {
     })
     /* <-- SUBMIT TOURNAMENT SCORE --> */
     
-    /* <--  Get all tournaments where user played --> */
-    // app.get("/")
-    /* <--  Get all tournaments where user played --> */
+    /* <--  HISTORY STATS --> */
+    app.get("/history", { preHandler: [app.authenticate] }, async (req, reply) => {
+      const user: any = req.user;
+      const username = user.username;
+      
+      try {
+        // Get all tournaments where user played
+        const tournaments = await prisma.tournament.findMany({
+          where: {
+            games: {
+              some: {
+                OR: [
+                  { tournamentPlayer1Name: username },
+                  { tournamentPlayer2Name: username }
+                ]
+              }
+            }
+          },
+          include: { games: true },
+          orderBy: { createdAt: 'desc' }
+        });
+        
+        // Calculate stats
+        const totalTournaments = tournaments.length;
+        const completedTournaments = tournaments.filter((t: any)=> t.status === "COMPLETED").length;
+        const wonTournaments = tournaments.filter((t: any) => {
+          // Find final match (highest round) and check if user won
+          const finalMatch = t.games.sort((a: any, b: any) => b.round! - a.round!)[0];
+          if (!finalMatch) return false;
+          
+          const winner = finalMatch.score1 > finalMatch.score2 
+            ? finalMatch.tournamentPlayer1Name 
+            : finalMatch.tournamentPlayer2Name;
+          return winner === username;
+        }).length;
+        
+        return reply.send({
+          username,
+          stats: {
+            totalTournaments,
+            completedTournaments,
+            wonTournaments,
+            winRate: totalTournaments > 0 ? (wonTournaments / completedTournaments * 100).toFixed(1) : 0
+          },
+          tournaments // Full tournament data for detailed view
+        });
+        
+      } catch (err: any) {
+        console.error("❌ Failed to get user tournaments:", err.message);
+        return reply.status(500).send({ error: "Failed to fetch user data" });
+      }
+    });
+    /* <-- HISTORY STATS --> */
     
-
 }

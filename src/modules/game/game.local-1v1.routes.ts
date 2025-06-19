@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-const bcrypt = require("bcrypt");
 import { PrismaClient } from "@prisma/client";
 import { prisma } from '../../utils/prisma';
 
@@ -38,7 +37,7 @@ export default async function local_1v1(app: FastifyInstance) {
   })
   /* <-- Local 1vs1 route --> */
   
-  /* <-- Get game results route --> */
+  /* <-- Get local game results + stats route --> */
   app.get("/local", { preHandler: [app.authenticate] }, async (req, reply) => {
     const user: any = req.user;
   
@@ -51,12 +50,35 @@ export default async function local_1v1(app: FastifyInstance) {
         orderBy: { createdAt: "desc" }
       });
   
-      return reply.send({ games });
+      // Calculate local game stats
+      const totalGames = games.length;
+      const wonGames = games.filter((game: any) => {
+        if (game.winnerId === user.id) return true;
+        // For local games, if no winnerId but score1 > score2, user wins
+        if (!game.winnerId && game.score1 > game.score2) return true;
+        return false;
+      }).length;
+      const lostGames = games.filter((game: any) => {
+        // Lost if winnerId is not user.id or score1 < score2
+        if (game.winnerId && game.winnerId !== user.id) return true;
+        if (!game.winnerId && game.score1 < game.score2) return true;
+        return false;
+      }).length;
+  
+      return reply.send({ 
+        games,
+        stats: {
+          totalGames,
+          wonGames,
+          lostGames,
+          winRate: totalGames > 0 ? ((wonGames / totalGames) * 100).toFixed(1) : 0
+        }
+      });
     } catch (err) {
       console.error("❌ Failed to fetch local games:", err);
       return reply.status(500).send({ error: "Internal Server Error" });
     }
   });
-  /* <-- Get game results route --> */
+  /* <-- Get local game results + stats route --> */
 
 }
