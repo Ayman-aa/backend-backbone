@@ -165,5 +165,9 @@ export default async function tournament(app: FastifyInstance) {
     })
     /* <-- SUBMIT TOURNAMENT SCORE --> */
     
+    /* <--  Get all tournaments where user played --> */
+    // app.get("/")
+    /* <--  Get all tournaments where user played --> */
+    
 
 }
