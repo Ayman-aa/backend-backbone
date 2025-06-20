@@ -1,0 +1,156 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Friendship {
+  id           Int            @id @default(autoincrement())
+  requester    User           @relation("RequestSender", fields: [requesterId], references: [id])
+  requesterId  Int
+  
+  recipient    User           @relation("RequestReceiver", fields: [recipientId], references: [id])
+  recipientId  Int
+  
+  status       String         // "pending", "accepted", "declined"
+  createdAt    DateTime @default(now())
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId    Int
+
+  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
+  recipientId Int
+
+  content     String
+  createdAt   DateTime @default(now())
+  read        Boolean  @default(false)
+}
+
+model Block {
+  id          Int    @id @default(autoincrement())
+  blocker     User   @relation("Blocker", fields: [blockerId], references: [id])
+  blockerId   Int
+  blocked     User   @relation("Blocked", fields: [blockedId], references: [id])
+  blockedId   Int
+  createdAt   DateTime @default(now())
+
+  @@unique([blockerId, blockedId]) // Prevent duplicates
+}
+
+model User {
+  id           Int            @id @default(autoincrement()) 
+  email        String         @unique
+  password     String
+  username     String         @unique
+  first_name   String?
+  last_name    String?
+  avatar       String?
+  RefreshToken RefreshToken[]
+  sentRequests     Friendship[] @relation("RequestSender")
+  receivedRequests Friendship[] @relation("RequestReceiver")
+  
+  twoFACode       String?      // Current 2FA code
+  twoFACodeExpiresAt DateTime? // Expiration timestamp
+  isTwoFAEnabled  Boolean       @default(false)
+
+  
+  sentMessages      Message[]     @relation("SentMessages")
+  receivedMessages  Message[]     @relation("ReceivedMessages")
+  
+  blocksSent        Block[]       @relation("Blocker")
+  blocksReceived    Block[]       @relation("Blocked")
+
+  gamesAsPlayer1   Game[]        @relation("Player1")
+  gamesAsPlayer2   Game[]        @relation("Player2")
+  gamesWon         Game[]        @relation("GameWinner")
+  
+  tournamentsOwned  Tournament[]
+  
+  remoteRequestsSent     RemoteMatchRequest[] @relation("RemoteRequester")
+  remoteRequestsReceived RemoteMatchRequest[] @relation("RemoteRecipient")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent  String? 
+  ipAddress  String? 
+}
+
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  attempts  Int      @default(0)
+  lockedUntil DateTime?
+  updatedAt DateTime @updatedAt
+}
+
+enum GameMode {
+  LOCAL
+  REMOTE
+  TOURNAMENT
+}
+
+model Game {
+  id           Int       @id @default(autoincrement())
+  player1      User?      @relation("Player1", fields: [player1Id], references: [id])
+  player1Id    Int?
+
+  // player2 is optional: not a real user for local games
+  player2      User?     @relation("Player2", fields: [player2Id], references: [id])
+  player2Id    Int?
+
+  player2Name  String?   // Only used if player2 is NOT a registered user
+
+  tournamentPlayer1Name String?  // For tournament local players
+  tournamentPlayer2Name String?  // For tournament local players
+  round                 Int?     // rounds count 
+  
+  score1       Int
+  score2       Int
+
+  winnerId     Int?      // winner could be guest
+  winner       User?     @relation("GameWinner", fields: [winnerId], references: [id])
+  mode         GameMode  @default(LOCAL)
+  createdAt    DateTime  @default(now())
+  
+  tournamentId Int?
+  tournament   Tournament? @relation("TournamentGames", fields: [tournamentId], references: [id])
+}
+
+model Tournament {
+  id         Int      @id @default(autoincrement())
+  name       String
+  ownerId    Int
+  owner      User      @relation(fields: [ownerId], references: [id])
+  games      Game[]    @relation("TournamentGames")
+  createdAt  DateTime  @default(now())
+  
+  status     String    @default("REGISTRATION")  // "REGISTRATION", "IN_PROGRESS", "COMPLETED"
+  maxPlayers Int       @default(8)
+}
+
+model RemoteMatchRequest {
+  id           Int      @id @default(autoincrement())
+  requester    User     @relation("RemoteRequester", fields: [requesterId], references: [id])
+  requesterId  Int
+  recipient    User     @relation("RemoteRecipient", fields: [recipientId], references: [id])
+  recipientId  Int
+  status       String   @default("pending") // "pending" | "accepted" | "declined"
+  createdAt    DateTime @default(now())
+}
+
