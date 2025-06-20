@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 import { generateRandomUsername, checkLoginAttempts, recordFailedLogin, clearLoginAttempts, prisma } from '../../utils/prisma';
 import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
+import { generate2FACode, send2FACode } from '../../utils/2fa'
 
 /* 
   Q: When JWT expires, what happens?
@@ -49,8 +50,23 @@ export default async function authRoutes(app: FastifyInstance) {
            await recordFailedLogin(email);
            return reply.status(401).send({ statusCode: 401, error: "Invalid credentials" });
          }
-         logged = true;
-         user = existingUser;
+         
+         if (existingUser.isTwoFAEnabled) {
+          const tempToken = app.jwt.sign({id: existingUser.id, scope: '2fa_verify' }, { expiresIn: '5m' } );
+             
+          const code = generate2FACode();
+          const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { twoFACode: code, twoFACodeExpiresAt: expiresAt },
+          });
+          await send2FACode(existingUser.email, code);
+     
+          return reply.status(200).send({ message: "2FA verification required", tempToken: tempToken });
+        }
+         
+        logged = true;
+        user = existingUser;
        } 
        else {
          const newUsername = username || generateRandomUsername(email.split('@')[0]);

@@ -59,6 +59,11 @@ model User {
   sentRequests     Friendship[] @relation("RequestSender")
   receivedRequests Friendship[] @relation("RequestReceiver")
   
+  twoFACode       String?      // Current 2FA code
+  twoFACodeExpiresAt DateTime? // Expiration timestamp
+  isTwoFAEnabled  Boolean       @default(false)
+
+  
   sentMessages      Message[]     @relation("SentMessages")
   receivedMessages  Message[]     @relation("ReceivedMessages")
   

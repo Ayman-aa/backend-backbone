@@ -19,6 +19,7 @@ import oauth2Plugin from "./plugins/oauth2";
 import userRoutes from "./modules/users/profile.routes";
 import usersRoutes from "./modules/users/users.routes";
 import authRoutes from "./modules/auth/auth.routes";
+import auth2faRoutes from "./modules/auth/auth.2fa.routes";
 import friendsRoutes from "./modules/friends/friends.routes";
 import chatRoutes from "./modules/chats/chats.routes";
 import local_1v1 from "./modules/game/game.local-1v1.routes";
@@ -72,7 +73,8 @@ app.register(oauth2Plugin);
 // Register routes
 app.register(userRoutes, { prefix: "/profile" });
 app.register(usersRoutes, { prefix: "/users" });
-app.register(authRoutes, { prefix: "/auth" });
+app.register(authRoutes,  { prefix: "/auth" });
+app.register(auth2faRoutes,  { prefix: "/auth" });
 app.register(friendsRoutes, { prefix: "/friends" });
 app.register(chatRoutes, { prefix: "/chats" });
 app.register(local_1v1, { prefix: "/game" });
