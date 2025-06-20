@@ -17,7 +17,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
-    "chalk": "^5.4.1",
+    "chalk": "^4.1.2",
     "chalk-animation": "^2.0.3",
     "cli-table3": "^0.6.5",
     "dotenv": "^16.5.0",
