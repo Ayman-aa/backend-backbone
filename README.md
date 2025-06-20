@@ -1,17 +1,19 @@
-```js
 🚀 API ROUTES OVERVIEW
 ════════════════════════════════════════════════════════════
 
 📁 🎮 GAMING
 
-  POST /game/local        [A]  GET  /game/local        [A]  GET  /game/remote/      [A]
-  POST /game/remote/:i... [A]  POST /game/remote/re... [A]  POST /game/remote/re... [A]
+  POST /game/local        [A]  GET  /game/local        [A]
+  GET  /game/remote/      [A]  POST /game/remote/:i... [A]
+  POST /game/remote/re... [A]  POST /game/remote/re... [A]
+  POST /game/tournamen... [A]  GET  /game/tournamen... [A]
+  POST /game/tournamen... [A]
 
 
 📁 👤 PROFILE
 
-  GET  /profile/:id       [A]  PATCH /profile/avatar    [A]  GET  /profile/me        [A]
-  PATCH /profile/username  [A]
+  GET  /profile/:id       [A]  PATCH /profile/avatar    [A]
+  GET  /profile/me        [A]  PATCH /profile/username  [A]
 
 
 📁 👥 USERS
@@ -21,8 +23,8 @@
 
 📁 💬 MESSAGING
 
-  GET  /chats/conversa... [A]  POST /chats/mark-read   [A]  POST /chats/send        [A]
-  POST /chats/thread      [A]
+  GET  /chats/conversa... [A]  POST /chats/mark-read   [A]
+  POST /chats/send        [A]  POST /chats/thread      [A]
 
 
 📁 📁 STATIC FILES
@@ -32,20 +34,25 @@
 
 📁 🔐 AUTHENTICATION
 
-  POST /auth/authenticate [P]  POST /auth/fetch-token  [P]  GET  /auth/google       [P]
-  GET  /auth/google/ca... [P]  POST /auth/logout       [P]  POST /auth/refresh      [P]
-  GET  /auth/validate     [P]
+  POST /auth/authenticate [P]  POST /auth/disable-2fa  [A]
+  POST /auth/enable-2fa   [A]  POST /auth/fetch-token  [P]
+  POST /auth/generate-2fa [A]  GET  /auth/google       [P]
+  GET  /auth/google/ca... [P]  POST /auth/logout       [P]
+  POST /auth/refresh      [P]  POST /auth/resend-2fa   [A]
+  GET  /auth/validate     [P]  POST /auth/verify-2fa   [A]
 
 
 📁 🤝 FRIENDS
 
-  POST /friends/accept    [A]  POST /friends/block     [A]  GET  /friends/blocked   [A]
-  POST /friends/decline   [A]  GET  /friends/list      [A]  GET  /friends/pending   [A]
-  POST /friends/request   [A]  GET  /friends/sent      [A]  POST /friends/unblock   [A]
+  POST /friends/accept    [A]  POST /friends/block     [A]
+  GET  /friends/blocked   [A]  POST /friends/decline   [A]
+  GET  /friends/list      [A]  GET  /friends/pending   [A]
+  POST /friends/request   [A]  GET  /friends/sent      [A]
+  POST /friends/unblock   [A]
 
 ════════════════════════════════════════════════════════════
-📊 SUMMARY: 33 routes total
-   [A]uth: 25 | [P]ublic: 8 | 3 cols
+📊 SUMMARY: 41 routes total
+   [A]uth: 33 | [P]ublic: 8 | 2 cols
 ════════════════════════════════════════════════════════════
 
 
@@ -58,4 +65,5 @@
 
 ✅ ONLINE 🌐
 Server is up and listening on: http://localhost:3000
-```
+
+---------------------------------------------------------------------------
