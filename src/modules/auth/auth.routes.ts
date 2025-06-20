@@ -305,6 +305,103 @@ export default async function authRoutes(app: FastifyInstance) {
   })
   /* <-- Validate route --> */
   
+  /* <-- Verify Login 2FA Code --> */
+  app.post("/verify-login-2fa", async (request, reply) => {
+      try {
+        const authHeader = request.headers["authorization"];
+        if (!authHeader)
+          return reply.status(401).send({ error: "No token provided" });
+  
+        const token = authHeader.split(" ")[1];
+        if (!token) return reply.status(401).send({ error: "Malformed token" });
+  
+        // Verify the temp token
+        const payload = app.jwt.verify(token) as {
+          id: number;
+          scope: string;
+        };
+  
+        if (payload.scope !== "2fa_verify") {
+          return reply.status(401).send({ error: "Invalid token scope" });
+        }
+  
+        const { code } = request.body as { code: string };
+        if (!code) {
+          return reply.status(400).send({ error: "Code is required" });
+        }
+  
+        // Get user and verify 2FA code
+        const user = await prisma.user.findUnique({ where: { id: payload.id } });
+        if (!user) {
+          return reply.status(404).send({ error: "User not found" });
+        }
+  
+        const isValid =
+          user.twoFACode === code &&
+          user.twoFACodeExpiresAt &&
+          new Date() < user.twoFACodeExpiresAt;
+  
+        if (!isValid) {
+          return reply.status(401).send({ error: "Invalid or expired 2FA code" });
+        }
+  
+        // Clear the 2FA code
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { twoFACode: null, twoFACodeExpiresAt: null },
+        });
+  
+        // Generate full auth token
+        const authToken = app.jwt.sign(
+          {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            avatar: user.avatar,
+            isTwoFAEnabled: user.isTwoFAEnabled,
+          },
+          { expiresIn: "15m" },
+        );
+  
+        // Create refresh token
+        const refreshToken = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  
+        await prisma.refreshToken.create({
+          data: {
+            token: refreshToken,
+            userId: user.id,
+            expiresAt,
+            userAgent: request.headers["user-agent"],
+            ipAddress: request.ip,
+          },
+        });
+  
+        reply.setCookie("refreshToken", refreshToken, {
+          path: "/",
+          httpOnly: false,
+          secure: true,
+          sameSite: "none",
+          maxAge: 7 * 24 * 3600,
+        });
+  
+        return reply.send({
+          message: "2FA verification successful",
+          token: authToken,
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            isTwoFAEnabled: user.isTwoFAEnabled,
+          },
+        });
+      } catch (err: any) {
+        console.error("Login 2FA verification error:", err);
+        return reply.status(401).send({ error: "Invalid or expired token" });
+      }
+  });
+    /* <-- Verify Login 2FA Code --> */
+  
   /* <-- Sessions route !But not now --> */
     /* /sessions route that lists them [ip, userAgent]
     Show to the user:
