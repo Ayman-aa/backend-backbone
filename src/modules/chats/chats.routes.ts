@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { z } from "zod"
 import { prisma } from "../../utils/prisma"
 import { io } from "../socket/socket"
+<<<<<<< HEAD
 import { ChatService } from "./chats.service"
 import { 
   validateSendMessage, 
@@ -25,6 +26,8 @@ import {
   ForbiddenError,
   DatabaseError
 } from "../../middlewares/errorHandling.middleware"
+=======
+>>>>>>> main
 
 interface MessageWithRelations {
   id: number;
@@ -70,6 +73,7 @@ export default async function chatRoutes(app: FastifyInstance) {
   }, async (req: FastifyRequest, reply: FastifyReply) => {
     const user: any = req.user;
     
+<<<<<<< HEAD
     return monitoringService.trackOperation('send_message', async () => {
       try {
         // Validate input with Zod schema
@@ -198,6 +202,65 @@ export default async function chatRoutes(app: FastifyInstance) {
         throw new AppError('Failed to send message', 500);
       }
     });
+=======
+    try {
+      const isBlocked = await prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: user.id, blockedId: toUserId },
+            { blockerId: toUserId, blockedId: user.id },
+          ]
+        }
+      });
+      
+      if (isBlocked)
+        return reply.status(403).send({ error: "Blocked users cannot interact" });
+
+      if (!content || content.trim().length === 0)
+        return reply.status(400).send({ error: "Message cannot be empty" });
+      
+      const message = await prisma.message.create({
+        data: {
+          senderId: user.id,
+          recipientId: toUserId,
+          content,
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+          recipient: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      });
+
+      // Send real-time notification to recipient if they're online
+      if (io) {
+        io.to(`user_${toUserId}`).emit("private_message", {
+          id: message.id,
+          from: user.id,
+          to: toUserId,
+          sender: message.sender,
+          message: message.content,
+          timestamp: message.createdAt
+        });
+      }
+
+      return reply.send({ message });
+    } catch (err) {
+      console.error("❌ Send message error:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+>>>>>>> main
   })
   /* <-- send message route --> */
   
@@ -211,6 +274,7 @@ export default async function chatRoutes(app: FastifyInstance) {
     const user: any = req.user;
     const userId = user.id;
     
+<<<<<<< HEAD
     return monitoringService.trackOperation('get_message_thread', async () => {
       try {
         // Validate input with Zod schema
@@ -302,6 +366,39 @@ export default async function chatRoutes(app: FastifyInstance) {
         throw new AppError('Failed to retrieve messages', 500);
       }
     });
+=======
+    try {
+      const messages = await prisma.message.findMany({
+        where: {
+          OR: [
+            { senderId: userId, recipientId: toUserId },
+            { senderId: toUserId, recipientId: userId },
+          ],
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+          recipient: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+      return reply.send({ messages });
+    } catch (err) {
+      console.error("❌ connot get all messages between two users:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+>>>>>>> main
   });
   /* <-- Get all user messages by id route --> */
   
@@ -315,6 +412,7 @@ export default async function chatRoutes(app: FastifyInstance) {
     const user: any = req.user;
     const userId = user.id;
     
+<<<<<<< HEAD
     return monitoringService.trackOperation('get_conversations', async () => {
       try {
         const allMessages = await monitoringService.trackDatabaseOperation(
@@ -326,6 +424,24 @@ export default async function chatRoutes(app: FastifyInstance) {
                 { senderId: userId },
                 { recipientId: userId },
               ],
+=======
+    try {
+      // Get all messages involving the current user
+      const allMessages = await prisma.message.findMany({
+        where: {
+          OR: [
+            { senderId: userId },
+            { recipientId: userId },
+          ],
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              avatar: true,
+              username: true,
+              email: true,
+>>>>>>> main
             },
             include: {
               sender: {
@@ -345,6 +461,7 @@ export default async function chatRoutes(app: FastifyInstance) {
                 },
               },
             },
+<<<<<<< HEAD
             orderBy: { createdAt: "desc" },
           })
         ) as MessageWithRelations[];
@@ -413,10 +530,65 @@ export default async function chatRoutes(app: FastifyInstance) {
         throw new AppError('Failed to retrieve conversations', 500);
       }
     });
+=======
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      // Group messages by conversation partner
+      const conversationMap = new Map<number, ConversationData>();
+      
+      allMessages.forEach((message: MessageWithRelations) => {
+        const partnerId = message.senderId === userId ? message.recipientId : message.senderId;
+        const partner = message.senderId === userId ? message.recipient : message.sender;
+        
+        if (!conversationMap.has(partnerId)) {
+          conversationMap.set(partnerId, {
+            user: partner,
+            lastMessage: message,
+            unreadCount: 0,
+            messages: []
+          });
+        }
+        
+        const conversation = conversationMap.get(partnerId);
+        if (conversation) {
+          conversation.messages.push(message);
+        }
+      });
+
+      // Calculate unread counts and prepare final conversations array
+      const conversations = Array.from(conversationMap.values()).map(conv => {
+        // Count unread messages (messages sent to current user that are not read)
+        const unreadCount = conv.messages.filter((msg: MessageWithRelations) => 
+          msg.recipientId === userId && !msg.read
+        ).length;
+
+        return {
+          user: conv.user,
+          lastMessage: conv.lastMessage,
+          unreadCount: unreadCount
+        };
+      });
+
+      // Sort by last message timestamp
+      conversations.sort((a, b) => 
+        new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
+      );
+
+      return reply.send({ conversations });
+    } 
+    catch (err) {
+      console.error("❌ Cannot get users chatted with:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+>>>>>>> main
   })
   /* <-- Get users chatted with route --> */
   
   /* <-- Mark messages as read route --> */
+<<<<<<< HEAD
   app.post("/mark-read", { 
     preHandler: [
       app.authenticate, 
@@ -520,7 +692,40 @@ export default async function chatRoutes(app: FastifyInstance) {
         throw new AppError('Failed to mark messages as read', 500);
       }
     });
+=======
+  app.post("/mark-read", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const user: any = req.user;
+    const userId = user.id;
+    const { fromUserId } = req.body as { fromUserId: number };
+    
+    try {
+      await prisma.message.updateMany({
+        where: {
+          senderId: fromUserId,
+          recipientId: userId,
+          read: false,
+        },
+        data: {
+          read: true,
+        },
+      });
+      
+      return reply.send({ success: true });
+    } catch (err) {
+      console.error("❌ Cannot mark messages as read:", err);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+>>>>>>> main
   });
   /* <-- Mark messages as read route --> */
 
 }
+
+/*
+| Method | Route                | Description                                        |
+|--------|---------------------|-----------------------------------------------------|
+| POST   | `/send`             | Send a private message to a user                    |
+| POST   | `/thread`           | Get all messages between current user and a user    |
+| GET    | `/conversations`    | Get list of users I've chatted with and last message|
+| POST   | `/mark-read`        | Mark messages from a user as read                   |
+*/

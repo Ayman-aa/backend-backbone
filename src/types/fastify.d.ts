@@ -7,3 +7,11 @@ declare module 'fastify' {
     googleOAuth2: OAuth2Namespace;
   }
 }
+
+/*
+| Declaration    | Description                                                     |
+|----------------|-----------------------------------------------------------------|
+| FastifyInstance| Extends Fastify with custom properties                          |
+| authenticate   | Middleware function to verify JWT token                         |
+| googleOAuth2   | Instance of registered Google OAuth2 provider via fastify-oauth2|
+*/
