@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 import { prisma } from "../../utils/prisma";
 import { RateLimiter } from "limiter";
-import { setupRemoteGameEvents } from "./remote";
+import { initializeGameSocket, gameSocket } from "./GameSocket";
 
 export let io: SocketIOServer;
 
@@ -90,8 +90,8 @@ export function setupSocketIO(server: HttpServer) {
     }
   });
 
-  // Setup remote game events
-  setupRemoteGameEvents(io);
+  // Initialize game socket
+  initializeGameSocket(io);
 
   io.on("connection", (socket: AuthenticatedSocket) => {
     console.log(
@@ -101,6 +101,9 @@ export function setupSocketIO(server: HttpServer) {
 
     // Join user to their own room for direct messaging
     socket.join(`user_${socket.userId}`);
+
+    // Setup game events for this socket
+    gameSocket.setupGameEvents(socket);
 
     // Notify friends of online status
     socket.broadcast.emit("user_status", {
@@ -141,11 +144,11 @@ export function setupSocketIO(server: HttpServer) {
 /*
 | Function        | Description                                                   |
 | ----------------|---------------------------------------------------------------|
-| setupSocketIO() | Initializes and configures Socket.IO server with auth         |
-|                 | - Validates JWT on connection                                 |
+| setupSocketIO   | - Validates JWT on connection                                 |
 |                 | - Rate limits users to 10 events per second                   |
 |                 | - Sets up remote game events for multiplayer pong             |
 |                 | - Joins users to private rooms for messaging                  |
 |                 | - Emits online/offline status to others                       |
+|                 | - Integrates GameSocket for real-time game functionality      |
 |                 | - Rejects direct message sending via socket (use API instead) |
 */

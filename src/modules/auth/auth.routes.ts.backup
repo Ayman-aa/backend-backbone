@@ -162,8 +162,8 @@ export default async function authRoutes(app: FastifyInstance) {
         reply.setCookie("refreshToken", refreshToken, {
           path: "/",
           httpOnly: false,
-          secure: false,
-          sameSite: "lax",
+          secure: true,
+          sameSite: "none",
           maxAge: 7 * 24 * 3600,
         });
 
@@ -370,18 +370,11 @@ export default async function authRoutes(app: FastifyInstance) {
       console.log("✅ Refresh token saved to database");
       reply.setCookie("refreshToken", refreshToken, getCookieOptions());
 
-      // Redirect to frontend (port 8080)
-      const host = request.headers.host?.split(":")[0] || "localhost";
-      const protocol = request.headers["x-forwarded-proto"] || "http";
-      const redirectUrl = `${protocol}://${host}:8080`;
-      return reply.redirect(redirectUrl);
+      return reply.redirect("http://localhost:8080");
     } catch (err) {
       console.error("❌ Google auth error:", err);
       // Redirect to frontend with error parameter
-      const host = request.headers.host?.split(":")[0] || "localhost";
-      const protocol = request.headers["x-forwarded-proto"] || "http";
-      const redirectUrl = `${protocol}://${host}:8080?google_error=true`;
-      return reply.redirect(redirectUrl);
+      return reply.redirect("http://localhost:8080?google_error=true");
     }
   });
   /* <-- Google Callback route --> */
@@ -487,8 +480,8 @@ export default async function authRoutes(app: FastifyInstance) {
       reply.setCookie("refreshToken", refreshToken, {
         path: "/",
         httpOnly: false,
-        secure: false,
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
         maxAge: 7 * 24 * 3600,
       });
 

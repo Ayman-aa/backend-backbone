@@ -15,10 +15,10 @@ model Friendship {
   id           Int            @id @default(autoincrement())
   requester    User           @relation("RequestSender", fields: [requesterId], references: [id])
   requesterId  Int
-  
+
   recipient    User           @relation("RequestReceiver", fields: [recipientId], references: [id])
   recipientId  Int
-  
+
   status       String         // "pending", "accepted", "declined"
   createdAt    DateTime @default(now())
 }
@@ -48,7 +48,7 @@ model Block {
 }
 
 model User {
-  id           Int            @id @default(autoincrement()) 
+  id           Int            @id @default(autoincrement())
   email        String         @unique
   password     String
   username     String         @unique
@@ -58,24 +58,24 @@ model User {
   RefreshToken RefreshToken[]
   sentRequests     Friendship[] @relation("RequestSender")
   receivedRequests Friendship[] @relation("RequestReceiver")
-  
+
   twoFACode       String?      // Current 2FA code
   twoFACodeExpiresAt DateTime? // Expiration timestamp
   isTwoFAEnabled  Boolean       @default(false)
 
-  
+
   sentMessages      Message[]     @relation("SentMessages")
   receivedMessages  Message[]     @relation("ReceivedMessages")
-  
+
   blocksSent        Block[]       @relation("Blocker")
   blocksReceived    Block[]       @relation("Blocked")
 
   gamesAsPlayer1   Game[]        @relation("Player1")
   gamesAsPlayer2   Game[]        @relation("Player2")
   gamesWon         Game[]        @relation("GameWinner")
-  
+
   tournamentsOwned  Tournament[]
-  
+
   remoteRequestsSent     RemoteMatchRequest[] @relation("RemoteRequester")
   remoteRequestsReceived RemoteMatchRequest[] @relation("RemoteRecipient")
 }
@@ -87,8 +87,8 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
-  userAgent  String? 
-  ipAddress  String? 
+  userAgent  String?
+  ipAddress  String?
 }
 
 model LoginAttempt {
@@ -118,16 +118,17 @@ model Game {
 
   tournamentPlayer1Name String?  // For tournament local players
   tournamentPlayer2Name String?  // For tournament local players
-  round                 Int?     // rounds count 
-  
+  round                 Int?     // rounds count
+
   score1       Int
   score2       Int
 
   winnerId     Int?      // winner could be guest
   winner       User?     @relation("GameWinner", fields: [winnerId], references: [id])
   mode         GameMode  @default(LOCAL)
+  status       String?   @default("finished") // "waiting", "ready", "playing", "finished" for remote games
   createdAt    DateTime  @default(now())
-  
+
   tournamentId Int?
   tournament   Tournament? @relation("TournamentGames", fields: [tournamentId], references: [id])
 }
@@ -139,7 +140,7 @@ model Tournament {
   owner      User      @relation(fields: [ownerId], references: [id])
   games      Game[]    @relation("TournamentGames")
   createdAt  DateTime  @default(now())
-  
+
   status     String    @default("REGISTRATION")  // "REGISTRATION", "IN_PROGRESS", "COMPLETED"
   maxPlayers Int       @default(8)
 }
@@ -153,4 +154,3 @@ model RemoteMatchRequest {
   status       String   @default("pending") // "pending" | "accepted" | "declined"
   createdAt    DateTime @default(now())
 }
-
