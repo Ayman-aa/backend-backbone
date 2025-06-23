@@ -34,7 +34,9 @@ export class GameSocket {
   setupGameEvents(socket: AuthenticatedSocket): void {
     if (!socket.userId) return;
 
-    console.log(`🎮 Setting up game events for ${socket.username} (${socket.userId})`);
+    console.log(
+      `🎮 Setting up game events for ${socket.username} (${socket.userId})`,
+    );
 
     // Game joining
     socket.on("game:join", async (data: GameEventData) => {
@@ -70,7 +72,10 @@ export class GameSocket {
   /**
    * Handle player joining a game
    */
-  private async handleJoinGame(socket: AuthenticatedSocket, data: GameEventData): Promise<void> {
+  private async handleJoinGame(
+    socket: AuthenticatedSocket,
+    data: GameEventData,
+  ): Promise<void> {
     if (!socket.userId || !data.gameId) {
       socket.emit("game:error", { message: "Invalid game data" });
       return;
@@ -102,7 +107,7 @@ export class GameSocket {
         this.io.to(`game:${data.gameId}`).emit("game:player_joined", {
           gameState,
           playerId: socket.userId,
-          username: socket.username
+          username: socket.username,
         });
 
         // Send game state to the joining player
@@ -119,14 +124,21 @@ export class GameSocket {
   /**
    * Handle player ready status
    */
-  private handlePlayerReady(socket: AuthenticatedSocket, data: PlayerReadyData): void {
+  private handlePlayerReady(
+    socket: AuthenticatedSocket,
+    data: PlayerReadyData,
+  ): void {
     if (!socket.userId || !data.gameId) {
       socket.emit("game:error", { message: "Invalid ready data" });
       return;
     }
 
     try {
-      const success = gameService.setPlayerReady(data.gameId, socket.userId, data.ready);
+      const success = gameService.setPlayerReady(
+        data.gameId,
+        socket.userId,
+        data.ready,
+      );
       if (!success) {
         socket.emit("game:error", { message: "Failed to set ready status" });
         return;
@@ -138,17 +150,20 @@ export class GameSocket {
         this.io.to(`game:${data.gameId}`).emit("game:state", gameState);
 
         // If game started, notify players
-        if (gameState.status === 'playing') {
+        if (gameState.status === "playing") {
           this.io.to(`game:${data.gameId}`).emit("game:started", {
-            message: "Game started! Use arrow keys or WASD to control your paddle."
+            message:
+              "Game started! Use arrow keys or WASD to control your paddle.",
           });
 
-          // Start broadcasting game state updates
-          this.startGameStateUpdates(data.gameId);
+          // Setup game end listener for this game
+          this.setupGameEndListener(data.gameId);
         }
       }
 
-      console.log(`🎮 Player ${socket.username} ready status: ${data.ready} in game ${data.gameId}`);
+      console.log(
+        `🎮 Player ${socket.username} ready status: ${data.ready} in game ${data.gameId}`,
+      );
     } catch (error) {
       console.error("❌ Error setting ready status:", error);
       socket.emit("game:error", { message: "Failed to set ready status" });
@@ -158,14 +173,21 @@ export class GameSocket {
   /**
    * Handle paddle movement
    */
-  private handlePaddleMove(socket: AuthenticatedSocket, data: PaddleMoveData): void {
+  private handlePaddleMove(
+    socket: AuthenticatedSocket,
+    data: PaddleMoveData,
+  ): void {
     if (!socket.userId || !data.gameId) return;
 
     // Validate direction
     if (data.direction !== -1 && data.direction !== 1) return;
 
     try {
-      const success = gameService.movePaddle(data.gameId, socket.userId, data.direction);
+      const success = gameService.movePaddle(
+        data.gameId,
+        socket.userId,
+        data.direction,
+      );
       if (!success) return;
 
       // No need to broadcast individual paddle moves as game state is broadcasted at 60 FPS
@@ -177,7 +199,10 @@ export class GameSocket {
   /**
    * Handle spectating a game
    */
-  private handleSpectateGame(socket: AuthenticatedSocket, gameId: string): void {
+  private handleSpectateGame(
+    socket: AuthenticatedSocket,
+    gameId: string,
+  ): void {
     if (!socket.userId || !gameId) {
       socket.emit("game:error", { message: "Invalid spectate data" });
       return;
@@ -216,13 +241,16 @@ export class GameSocket {
       socket.leave(`game:${gameId}`);
 
       // Force end the game
-      gameService.forceEndGame(gameId, `Player ${socket.username} left the game`);
+      gameService.forceEndGame(
+        gameId,
+        `Player ${socket.username} left the game`,
+      );
 
       // Notify other players
       socket.to(`game:${gameId}`).emit("game:player_left", {
         playerId: socket.userId,
         username: socket.username,
-        message: "Player left the game"
+        message: "Player left the game",
       });
 
       console.log(`🎮 Player ${socket.username} left game ${gameId}`);
@@ -245,55 +273,46 @@ export class GameSocket {
       this.removePlayerFromRoom(socket.userId, gameId);
 
       // Force end the game
-      gameService.forceEndGame(gameId, `Player ${socket.username} disconnected`);
+      gameService.forceEndGame(
+        gameId,
+        `Player ${socket.username} disconnected`,
+      );
 
       // Notify other players
       socket.to(`game:${gameId}`).emit("game:player_disconnected", {
         playerId: socket.userId,
         username: socket.username,
-        message: "Player disconnected"
+        message: "Player disconnected",
       });
 
-      console.log(`🎮 Player ${socket.username} disconnected from game ${gameId}`);
+      console.log(
+        `🎮 Player ${socket.username} disconnected from game ${gameId}`,
+      );
     } catch (error) {
       console.error("❌ Error handling disconnection:", error);
     }
   }
 
   /**
-   * Start broadcasting game state updates at 60 FPS
+   * Setup game end listener for a specific game
    */
-  private startGameStateUpdates(gameId: string): void {
-    const updateInterval = setInterval(() => {
-      const gameState = gameService.getGameState(gameId);
-      if (!gameState) {
-        clearInterval(updateInterval);
-        return;
-      }
-
-      if (gameState.status === 'finished') {
-        // Game ended, send final state and stop updates
+  private setupGameEndListener(gameId: string): void {
+    // Register callback to handle game end events
+    gameService.setBroadcastCallback(gameId, (gameState) => {
+      if (gameState.status === "finished") {
+        // Game ended, send final state
         this.io.to(`game:${gameId}`).emit("game:ended", {
           gameState,
           winner: gameState.winnerId,
-          message: gameState.winnerId ?
-            `Game ended! Winner: ${gameState.winnerId === gameState.player1.id ? gameState.player1.username : gameState.player2?.username}` :
-            "Game ended in a draw!"
+          message: gameState.winnerId
+            ? `Game ended! Winner: ${gameState.winnerId === gameState.player1.id ? gameState.player1.username : gameState.player2?.username}`
+            : "Game ended in a draw!",
         });
-        clearInterval(updateInterval);
-        return;
-      }
 
-      if (gameState.status === 'playing') {
-        // Broadcast current game state
-        this.io.to(`game:${gameId}`).emit("game:state", gameState);
+        // Clean up callback
+        gameService.removeBroadcastCallback(gameId);
       }
-    }, 1000 / 60); // 60 FPS
-
-    // Clean up interval after 10 minutes (safety measure)
-    setTimeout(() => {
-      clearInterval(updateInterval);
-    }, 10 * 60 * 1000);
+    });
   }
 
   /**
@@ -324,10 +343,10 @@ export class GameSocket {
   /**
    * Get active game rooms
    */
-  getActiveRooms(): { gameId: string, playerCount: number }[] {
+  getActiveRooms(): { gameId: string; playerCount: number }[] {
     return Array.from(this.gameRooms.entries()).map(([gameId, players]) => ({
       gameId,
-      playerCount: players.size
+      playerCount: players.size,
     }));
   }
 

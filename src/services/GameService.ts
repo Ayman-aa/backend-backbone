@@ -1,5 +1,6 @@
 import { prisma } from "../utils/prisma";
 import { GameMode } from "@prisma/client";
+import { io } from "../modules/socket/socket";
 
 export interface GameConfig {
   maxScore: number;
@@ -62,6 +63,8 @@ export interface GameResult {
 export class GameService {
   private activeGames: Map<string, GameState> = new Map();
   private gameIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private broadcastCallbacks: Map<string, (gameState: GameState) => void> =
+    new Map();
 
   private readonly DEFAULT_CONFIG: GameConfig = {
     maxScore: 5,
@@ -284,7 +287,47 @@ export class GameService {
       game.player2.score >= game.config.maxScore
     ) {
       this.endGame(gameId);
+      return;
     }
+
+    // CRITICAL FIX: Broadcast updated game state immediately after physics update
+    this.broadcastGameState(gameId);
+  }
+
+  /**
+   * Broadcast game state to all players in the game room
+   */
+  private broadcastGameState(gameId: string): void {
+    const game = this.activeGames.get(gameId);
+    if (!game) return;
+
+    // Broadcast to socket room if available
+    if (io) {
+      io.to(`game:${gameId}`).emit("game:state", game);
+    }
+
+    // Call any registered broadcast callbacks
+    const callback = this.broadcastCallbacks.get(gameId);
+    if (callback) {
+      callback(game);
+    }
+  }
+
+  /**
+   * Register a callback to be called when game state is broadcast
+   */
+  setBroadcastCallback(
+    gameId: string,
+    callback: (gameState: GameState) => void,
+  ): void {
+    this.broadcastCallbacks.set(gameId, callback);
+  }
+
+  /**
+   * Remove broadcast callback for a game
+   */
+  removeBroadcastCallback(gameId: string): void {
+    this.broadcastCallbacks.delete(gameId);
   }
 
   /**
