@@ -295,6 +295,8 @@ export class GameService {
       game.player1.score >= game.config.maxScore ||
       game.player2.score >= game.config.maxScore
     ) {
+      // CRITICAL FIX: Broadcast final score BEFORE ending the game
+      this.broadcastGameState(gameId);
       this.endGame(gameId);
       return;
     }
@@ -441,6 +443,9 @@ export class GameService {
       clearInterval(interval);
       this.gameIntervals.delete(gameId);
     }
+
+    // CRITICAL FIX: Broadcast final game state with winner
+    this.broadcastGameState(gameId);
 
     // Save game result to database
     try {
