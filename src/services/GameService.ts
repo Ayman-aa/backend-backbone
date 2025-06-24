@@ -187,6 +187,9 @@ export class GameService {
         data: { player2Id: playerId },
       });
 
+      // CRITICAL FIX: Broadcast game state immediately after player joins
+      this.broadcastGameState(gameId);
+
       console.log(`🎮 Player ${user.username} joined game ${gameId}`);
       return true;
     } catch (error) {
@@ -210,6 +213,9 @@ export class GameService {
       return false;
     }
 
+    // CRITICAL FIX: Broadcast game state immediately after ready status change
+    this.broadcastGameState(gameId);
+
     // Start game if both players are ready
     if (game.player1.ready && game.player2?.ready && game.status === "ready") {
       this.startGame(gameId);
@@ -227,6 +233,9 @@ export class GameService {
 
     game.status = "playing";
     game.lastUpdateTime = Date.now();
+
+    // CRITICAL FIX: Broadcast game state immediately when game starts
+    this.broadcastGameState(gameId);
 
     // Start 60 FPS game loop
     const gameInterval = setInterval(() => {

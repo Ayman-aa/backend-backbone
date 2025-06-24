@@ -82,36 +82,51 @@ export class GameSocket {
     }
 
     try {
-      // Check if player is already in another game
+      // Check if player is already in another game (but allow rejoining the same game)
       const existingGame = this.playerGames.get(socket.userId);
-      if (existingGame) {
+      if (existingGame && existingGame !== data.gameId) {
         socket.emit("game:error", { message: "Already in another game" });
         return;
       }
 
-      // Try to join the game
-      const success = await gameService.joinGame(data.gameId, socket.userId);
-      if (!success) {
-        socket.emit("game:error", { message: "Failed to join game" });
+      // Get current game state to check if player is already in this game
+      const gameState = gameService.getGameState(data.gameId);
+      if (!gameState) {
+        socket.emit("game:error", { message: "Game not found" });
         return;
       }
 
-      // Add player to game room
+      // Check if this is the game creator joining their own game
+      const isGameCreator = gameState.player1.id === socket.userId;
+      const isPlayer2 = gameState.player2?.id === socket.userId;
+
+      if (!isGameCreator && !isPlayer2) {
+        // Try to join as player 2
+        const success = await gameService.joinGame(data.gameId, socket.userId);
+        if (!success) {
+          socket.emit("game:error", { message: "Failed to join game" });
+          return;
+        }
+      }
+
+      // Add player to game room (or re-add if reconnecting)
       this.addPlayerToRoom(socket.userId, data.gameId);
       socket.join(`game:${data.gameId}`);
 
       // Get updated game state
-      const gameState = gameService.getGameState(data.gameId);
-      if (gameState) {
-        // Notify all players in the room
-        this.io.to(`game:${data.gameId}`).emit("game:player_joined", {
-          gameState,
-          playerId: socket.userId,
-          username: socket.username,
-        });
-
-        // Send game state to the joining player
-        socket.emit("game:state", gameState);
+      const updatedGameState = gameService.getGameState(data.gameId);
+      if (updatedGameState) {
+        // CRITICAL FIX: Broadcast updated game state to ALL players in the room
+        this.io.to(`game:${data.gameId}`).emit("game:state", updatedGameState);
+        
+        // Only notify about join if this is a new player (not the creator reconnecting)
+        if (!isGameCreator || updatedGameState.player2) {
+          this.io.to(`game:${data.gameId}`).emit("game:player_joined", {
+            gameState: updatedGameState,
+            playerId: socket.userId,
+            username: socket.username,
+          });
+        }
       }
 
       console.log(`🎮 Player ${socket.username} joined game ${data.gameId}`);
@@ -146,7 +161,7 @@ export class GameSocket {
 
       const gameState = gameService.getGameState(data.gameId);
       if (gameState) {
-        // Broadcast updated game state
+        // CRITICAL FIX: Always broadcast game state after ready status change
         this.io.to(`game:${data.gameId}`).emit("game:state", gameState);
 
         // If game started, notify players
