@@ -151,6 +151,7 @@ model RemoteMatchRequest {
   requesterId  Int
   recipient    User     @relation("RemoteRecipient", fields: [recipientId], references: [id])
   recipientId  Int
-  status       String   @default("pending") // "pending" | "accepted" | "declined"
+  status       String   @default("pending") // "pending" | "accepted" | "declined" | "cancelled" | "expired"
+  gameId       String?  // Game ID when invitation is accepted
   createdAt    DateTime @default(now())
 }

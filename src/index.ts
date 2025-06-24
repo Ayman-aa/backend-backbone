@@ -30,6 +30,7 @@ import chatRoutes from "./modules/chats/chats.routes";
 import local_1v1 from "./modules/game/game.local-1v1.routes";
 import remoteRoutes from "./modules/game/game.remote-1v1.routes";
 import tournamentRoutes from "./modules/game/game.tournaments.routes";
+import remoteInviteRoutes from "./modules/game/game.remote-invites.routes";
 
 import { fastifyStatic } from "@fastify/static";
 import path from "path";
@@ -83,6 +84,7 @@ app.register(friendsRoutes, { prefix: "/friends" });
 app.register(chatRoutes, { prefix: "/chats" });
 app.register(local_1v1, { prefix: "/game" });
 app.register(remoteRoutes, { prefix: "/game/remote" });
+app.register(remoteInviteRoutes, { prefix: "/game/remote" });
 app.register(tournamentRoutes, { prefix: "/game/tournaments" });
 
 const start = async () => {
