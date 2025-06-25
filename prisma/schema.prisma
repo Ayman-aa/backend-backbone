@@ -1,3 +1,5 @@
+// This is your Prisma schema file
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,24 +12,28 @@ datasource db {
 
 
 model Friendship {
-  id          Int      @id @default(autoincrement())
-  requesterId Int
-  recipientId Int
-  status      String
-  createdAt   DateTime @default(now())
-  recipient   User     @relation("RequestReceiver", fields: [recipientId], references: [id])
-  requester   User     @relation("RequestSender", fields: [requesterId], references: [id])
+  id           Int            @id @default(autoincrement())
+  requester    User           @relation("RequestSender", fields: [requesterId], references: [id])
+  requesterId  Int
+
+  recipient    User           @relation("RequestReceiver", fields: [recipientId], references: [id])
+  recipientId  Int
+
+  status       String         // "pending", "accepted", "declined"
+  createdAt    DateTime @default(now())
 }
 
 model Message {
   id          Int      @id @default(autoincrement())
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
   senderId    Int
+
+  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
   recipientId Int
+
   content     String
   createdAt   DateTime @default(now())
   read        Boolean  @default(false)
-  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
 model Block {
@@ -42,8 +48,7 @@ model Block {
 }
 
 model User {
-<<<<<<< HEAD
-  id           Int            @id @default(autoincrement()) 
+  id           Int            @id @default(autoincrement())
   email        String         @unique
   password     String
   username     String         @unique
@@ -53,64 +58,37 @@ model User {
   RefreshToken RefreshToken[]
   sentRequests     Friendship[] @relation("RequestSender")
   receivedRequests Friendship[] @relation("RequestReceiver")
-  
+
   twoFACode       String?      // Current 2FA code
   twoFACodeExpiresAt DateTime? // Expiration timestamp
   isTwoFAEnabled  Boolean       @default(false)
 
-  
+
   sentMessages      Message[]     @relation("SentMessages")
   receivedMessages  Message[]     @relation("ReceivedMessages")
-  
+
   blocksSent        Block[]       @relation("Blocker")
   blocksReceived    Block[]       @relation("Blocked")
 
   gamesAsPlayer1   Game[]        @relation("Player1")
   gamesAsPlayer2   Game[]        @relation("Player2")
   gamesWon         Game[]        @relation("GameWinner")
-  
+
   tournamentsOwned  Tournament[]
-  
+
   remoteRequestsSent     RemoteMatchRequest[] @relation("RemoteRequester")
   remoteRequestsReceived RemoteMatchRequest[] @relation("RemoteRecipient")
-=======
-  id               Int            @id @default(autoincrement())
-  email            String         @unique
-  password         String
-  username         String         @unique
-  first_name       String?
-  last_name        String?
-  avatar           String?
-  receivedRequests Friendship[]   @relation("RequestReceiver")
-  sentRequests     Friendship[]   @relation("RequestSender")
-  receivedMessages Message[]      @relation("ReceivedMessages")
-  sentMessages     Message[]      @relation("SentMessages")
-  RefreshToken     RefreshToken[]
-  blockedByUsers   UserBlock[]    @relation("BlockedByUsers")
-  blockedUsers     UserBlock[]    @relation("BlockedUsers")
-}
-
-model UserBlock {
-  id        Int      @id @default(autoincrement())
-  blockerId Int
-  blockedId Int
-  createdAt DateTime @default(now())
-  blocked   User     @relation("BlockedByUsers", fields: [blockedId], references: [id])
-  blocker   User     @relation("BlockedUsers", fields: [blockerId], references: [id])
-
-  @@unique([blockerId, blockedId])
->>>>>>> ayman
 }
 
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    Int
+  user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
-  ipAddress String?
-  userAgent String?
-  user      User     @relation(fields: [userId], references: [id])
+  userAgent  String?
+  ipAddress  String?
 }
 
 model LoginAttempt {
@@ -140,16 +118,17 @@ model Game {
 
   tournamentPlayer1Name String?  // For tournament local players
   tournamentPlayer2Name String?  // For tournament local players
-  round                 Int?     // rounds count 
-  
+  round                 Int?     // rounds count
+
   score1       Int
   score2       Int
 
   winnerId     Int?      // winner could be guest
   winner       User?     @relation("GameWinner", fields: [winnerId], references: [id])
   mode         GameMode  @default(LOCAL)
+  status       String?   @default("finished") // "waiting", "ready", "playing", "finished" for remote games
   createdAt    DateTime  @default(now())
-  
+
   tournamentId Int?
   tournament   Tournament? @relation("TournamentGames", fields: [tournamentId], references: [id])
 }
@@ -161,7 +140,7 @@ model Tournament {
   owner      User      @relation(fields: [ownerId], references: [id])
   games      Game[]    @relation("TournamentGames")
   createdAt  DateTime  @default(now())
-  
+
   status     String    @default("REGISTRATION")  // "REGISTRATION", "IN_PROGRESS", "COMPLETED"
   maxPlayers Int       @default(8)
 }
@@ -172,7 +151,7 @@ model RemoteMatchRequest {
   requesterId  Int
   recipient    User     @relation("RemoteRecipient", fields: [recipientId], references: [id])
   recipientId  Int
-  status       String   @default("pending") // "pending" | "accepted" | "declined"
+  status       String   @default("pending") // "pending" | "accepted" | "declined" | "cancelled" | "expired"
+  gameId       String?  // Game ID when invitation is accepted
   createdAt    DateTime @default(now())
 }
-

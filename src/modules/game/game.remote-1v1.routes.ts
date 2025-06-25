@@ -1,333 +1,277 @@
-import { FastifyInstance } from "fastify";
-const bcrypt = require("bcrypt");
-import { PrismaClient } from "@prisma/client";
-import { prisma } from "../../utils/prisma";
-import crypto from "crypto";
-import { io } from "../socket/socket";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { gameService } from "../../services/GameService";
 
-export default async function remote(app: FastifyInstance) {
-  /* <-- Send Remote Match Request --> */
-  app.post(
-    "/request",
+interface CreateGameRequest {
+  Body: {
+    maxScore?: number;
+    paddleSpeed?: number;
+    ballSpeed?: number;
+  };
+}
+
+interface JoinGameRequest {
+  Params: {
+    gameId: string;
+  };
+}
+
+interface GameStatsRequest {
+  Querystring: {
+    limit?: string;
+  };
+}
+
+export default async function remoteRoutes(app: FastifyInstance) {
+  /* <-- Create new remote game --> */
+  app.post<CreateGameRequest>(
+    "/create",
     {
       preHandler: [app.authenticate],
       schema: {
         body: {
           type: "object",
-          required: ["opponentId"],
           properties: {
-            opponentId: { type: "number" },
+            maxScore: { type: "integer", minimum: 1, maximum: 21 },
+            paddleSpeed: { type: "integer", minimum: 1, maximum: 20 },
+            ballSpeed: { type: "integer", minimum: 1, maximum: 15 },
           },
-          additionalProperties: false,
+          additionalProperties: true,
         },
       },
     },
-    async (req, reply) => {
-      const user: any = req.user;
-      const { opponentId } = req.body as { opponentId: number };
-
-      if (!opponentId || opponentId === user.id)
-        return reply.status(400).send({ error: "Invalid opponent Id" });
+    async (request: FastifyRequest<CreateGameRequest>, reply: FastifyReply) => {
+      const user: any = request.user;
+      const gameConfig = request.body;
 
       try {
-        const opponent = await prisma.user.findUnique({
-          where: { id: opponentId },
-        });
-        if (!opponent)
-          return reply.status(404).send({ error: "opponentId not found" });
-
-        const existing = await prisma.remoteMatchRequest.findFirst({
-          where: {
-            requesterId: user.id,
-            recipientId: opponentId,
-            status: "pending",
-          },
-        });
-
-        if (existing)
-          return reply
-            .status(400)
-            .send({ error: "Match request already sent" });
-
-        const matchRequest = await prisma.remoteMatchRequest.create({
-          data: {
-            requesterId: user.id,
-            recipientId: opponentId,
-            status: "pending",
-          },
-        });
-
-        return reply.send({ message: "Match request sent", matchRequest });
-      } catch (err: any) {
-        console.error("❌ Failed to send remote match request:", err.message);
-        return reply.status(500).send({ error: "Internal Server Error" });
-      }
-    },
-  );
-  /* <-- Send Remote Match Request --> */
-
-  /* <-- Accept or Decline Remote Match --> */
-  app.post(
-    "/respond",
-    {
-      preHandler: [app.authenticate],
-      schema: {
-        body: {
-          type: "object",
-          required: ["requestId", "action"],
-          properties: {
-            requestId: { type: "number" },
-            action: { type: "string", enum: ["accept", "decline"] },
-          },
-          additionalProperties: false,
-        },
-      },
-    },
-    async (req, reply) => {
-      const user: any = req.user;
-      const { requestId, action } = req.body as {
-        requestId: number;
-        action: "accept" | "decline";
-      };
-
-      if (!requestId || !action)
-        return reply.status(400).send({ error: "Missing requestId or action" });
-
-      try {
-        const matchRequest = await prisma.remoteMatchRequest.findUnique({
-          where: { id: requestId },
-          include: { requester: true, recipient: true },
-        });
-
-        if (!matchRequest)
-          return reply.status(403).send({ error: "Match request not found" });
-
-        if (matchRequest.recipientId !== user.id)
-          return reply
-            .status(403)
-            .send({ error: "You can only respond to requests sent to you" });
-
-        if (matchRequest.status !== "pending")
-          return reply
-            .status(400)
-            .send({ error: "Request already responded to" });
-
-        const updated = await prisma.remoteMatchRequest.update({
-          where: { id: requestId },
-          data: { status: action === "accept" ? "accepted" : "declined" },
-        });
-
-        // If accepted, create a new game
-        let game = null;
-        if (action === "accept") {
-          game = await prisma.game.create({
-            data: {
-              player1Id: matchRequest.requesterId,
-              player2Id: matchRequest.recipientId,
-              score1: 0,
-              score2: 0,
-              mode: "REMOTE",
-            },
-            include: { player1: true, player2: true },
+        // Check if player is already in a game
+        const existingGame = gameService.isPlayerInGame(user.id);
+        if (existingGame) {
+          return reply.status(400).send({
+            error: "Already in a game",
+            gameId: existingGame,
           });
-
-          // Notify both players via socket that the match was accepted
-          if (io) {
-            // Get socket connections for both players
-            const sockets = await io.fetchSockets();
-            
-            // Find and notify the original requester (player1)
-            const requesterSocket = sockets.find(s => (s as any).userId === matchRequest.requesterId);
-            if (requesterSocket) {
-              requesterSocket.emit('match_request_accepted', {
-                gameId: game.id,
-                opponentName: game.player2.username,
-                message: 'Your match request was accepted!'
-              });
-            }
-
-            // Find and notify the accepter (player2) - they already know but we send confirmation
-            const accepterSocket = sockets.find(s => (s as any).userId === matchRequest.recipientId);
-            if (accepterSocket) {
-              accepterSocket.emit('match_request_accepted', {
-                gameId: game.id,
-                opponentName: game.player1.username,
-                message: 'Match request accepted! Game created.'
-              });
-            }
-
-            console.log(`🎮 Match accepted: Game ${game.id} created between ${game.player1.username} and ${game.player2.username}`);
-          }
         }
 
+        const gameId = await gameService.createGame(user.id, gameConfig);
+
         return reply.send({
-          message: `Match request ${action}ed`,
-          matchRequest: updated,
-          game: game,
+          message: "Remote game created successfully",
+          gameId,
+          config: gameConfig,
         });
-      } catch (err) {
-        console.error("❌ Failed to respond to match request:", err);
-        return reply.status(500).send({ error: "Internal Server Error" });
+      } catch (error) {
+        console.error("❌ Failed to create remote game:", error);
+        return reply.status(500).send({
+          error: "Failed to create game",
+          details: (error as Error).message,
+        });
       }
     },
   );
-  /* <-- Accept or Decline Remote Match --> */
 
-  /* <-- Submit Game Score --> */
-  app.post(
-    "/:id/submit",
+  /* <-- Join existing remote game --> */
+  app.post<JoinGameRequest>(
+    "/join/:gameId",
     {
       preHandler: [app.authenticate],
-      schema: {
-        params: {
-          type: "object",
-          required: ["id"],
-          properties: {
-            id: { type: "string", pattern: "^[0-9]+$" }, // Ensures numeric string
-          },
-        },
-        body: {
-          type: "object",
-          required: ["score1", "score2"],
-          properties: {
-            score1: { type: "number", minimum: 0 },
-            score2: { type: "number", minimum: 0 },
-          },
-          additionalProperties: false,
-        },
-      },
     },
-    async (req, reply) => {
-      const user: any = req.user;
-      const { id } = req.params as { id: string };
-      const gameId = parseInt(id);
-      const { score1, score2 } = req.body as { score1: number; score2: number };
-
-      if (isNaN(gameId))
-        return reply.status(400).send({ error: "Invalid game ID" });
+    async (request: FastifyRequest<JoinGameRequest>, reply: FastifyReply) => {
+      const user: any = request.user;
+      const { gameId } = request.params;
 
       try {
-        const game = await prisma.game.findUnique({
-          where: { id: gameId },
-          include: { player1: true, player2: true },
-        });
+        // Check if player is already in a game
+        const existingGame = gameService.isPlayerInGame(user.id);
+        if (existingGame) {
+          return reply.status(400).send({
+            error: "Already in a game",
+            gameId: existingGame,
+          });
+        }
 
-        if (!game) return reply.status(404).send({ error: "Game not found" });
+        const success = await gameService.joinGame(gameId, user.id);
+        if (!success) {
+          return reply.status(400).send({ error: "Failed to join game" });
+        }
 
-        // Check if user is a participant in this game
-        if (game.player1Id !== user.id && game.player2Id !== user.id)
-          return reply
-            .status(403)
-            .send({ error: "You are not a participant in this game" });
-
-        // Check if game is already completed (has scores)
-        if (game.score1 !== 0 || game.score2 !== 0)
-          return reply
-            .status(400)
-            .send({ error: "Game scores already submitted" });
-
-        // Determine winner
-        let winnerId: number | null = null;
-        if (score1 > score2) winnerId = game.player1Id;
-        else if (score2 > score1) winnerId = game.player2Id;
-        // If scores are equal, winnerId remains null (tie)
-
-        const updatedGame = await prisma.game.update({
-          where: { id: gameId },
-          data: { score1, score2, winnerId },
-          include: { player1: true, player2: true, winner: true },
-        });
+        const gameState = gameService.getGameState(gameId);
 
         return reply.send({
-          message: "Game score submitted successfully",
-          game: updatedGame,
+          message: "Successfully joined game",
+          gameId,
+          gameState,
         });
-      } catch (err) {
-        console.error("❌ Failed to submit game score:", err);
-        return reply.status(500).send({ error: "Internal Server Error" });
+      } catch (error) {
+        console.error("❌ Failed to join remote game:", error);
+        return reply.status(500).send({
+          error: "Failed to join game",
+          details: (error as Error).message,
+        });
       }
     },
   );
-  /* <-- Submit Game Score --> */
 
-  /* <-- List of all remote matches the user has played. --> */
+  /* <-- Get game state --> */
+  app.get<JoinGameRequest>(
+    "/state/:gameId",
+    {
+      preHandler: [app.authenticate],
+    },
+    async (request: FastifyRequest<JoinGameRequest>, reply: FastifyReply) => {
+      const { gameId } = request.params;
+
+      try {
+        const gameState = gameService.getGameState(gameId);
+        if (!gameState) {
+          return reply.status(404).send({ error: "Game not found" });
+        }
+
+        return reply.send({ gameState });
+      } catch (error) {
+        console.error("❌ Failed to get game state:", error);
+        return reply.status(500).send({ error: "Failed to get game state" });
+      }
+    },
+  );
+
+  /* <-- Get active games --> */
   app.get(
-    "/",
+    "/active",
+    {
+      preHandler: [app.authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const activeGames = gameService.getActiveGames();
+
+        // Filter to show only joinable games (waiting for players)
+        const joinableGames = activeGames
+          .filter((game) => game.status === "waiting" && !game.player2)
+          .map((game) => ({
+            id: game.id,
+            status: game.status,
+            player1: {
+              id: game.player1.id,
+              username: game.player1.username,
+            },
+            config: game.config,
+          }));
+
+        return reply.send({
+          games: joinableGames,
+          count: joinableGames.length,
+        });
+      } catch (error) {
+        console.error("❌ Failed to get active games:", error);
+        return reply.status(500).send({ error: "Failed to get active games" });
+      }
+    },
+  );
+
+  /* <-- Get player's current game --> */
+  app.get(
+    "/current",
+    {
+      preHandler: [app.authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user: any = request.user;
+
+      try {
+        const gameId = gameService.isPlayerInGame(user.id);
+        if (!gameId) {
+          return reply.send({ gameId: null, gameState: null });
+        }
+
+        const gameState = gameService.getGameState(gameId);
+        return reply.send({ gameId, gameState });
+      } catch (error) {
+        console.error("❌ Failed to get current game:", error);
+        return reply.status(500).send({ error: "Failed to get current game" });
+      }
+    },
+  );
+
+  /* <-- Get player stats --> */
+  app.get(
+    "/stats",
+    {
+      preHandler: [app.authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user: any = request.user;
+
+      try {
+        const stats = await gameService.getPlayerStats(user.id);
+        return reply.send({ stats });
+      } catch (error) {
+        console.error("❌ Failed to get player stats:", error);
+        return reply.status(500).send({ error: "Failed to get player stats" });
+      }
+    },
+  );
+
+  /* <-- Get game history --> */
+  app.get<GameStatsRequest>(
+    "/history",
     {
       preHandler: [app.authenticate],
       schema: {
         querystring: {
           type: "object",
           properties: {
-            status: {
-              type: "string",
-              enum: ["pending", "accepted", "declined"],
-            },
-            limit: { type: "number", minimum: 1, maximum: 100, default: 20 },
-            offset: { type: "number", minimum: 0, default: 0 },
+            limit: { type: "string", pattern: "^[0-9]+$" },
           },
           additionalProperties: false,
         },
       },
     },
-    async (req, reply) => {
-      const user: any = req.user;
-      const {
-        status,
-        limit = 20,
-        offset = 0,
-      } = req.query as {
-        status?: string;
-        limit?: number;
-        offset?: number;
-      };
+    async (request: FastifyRequest<GameStatsRequest>, reply: FastifyReply) => {
+      const user: any = request.user;
+      const limit = request.query.limit ? parseInt(request.query.limit) : 10;
 
       try {
-        const whereCondition: any = {
-          OR: [{ requesterId: user.id }, { recipientId: user.id }],
-        };
-
-        if (status) whereCondition.status = status;
-
-        const [matchRequests, total] = await prisma.$transaction([
-          prisma.remoteMatchRequest.findMany({
-            where: whereCondition,
-            include: {
-              requester: { select: { id: true, username: true, avatar: true } },
-              recipient: { select: { id: true, username: true, avatar: true } },
-            },
-            orderBy: { createdAt: "desc" },
-            take: limit,
-            skip: offset,
-          }),
-          prisma.remoteMatchRequest.count({
-            where: whereCondition,
-          }),
-        ]);
-
+        const history = await gameService.getGameHistory(user.id, limit);
         return reply.send({
-          matchRequests,
-          pagination: {
-            total,
-            limit,
-            offset,
-            hasMore: offset + limit < total,
-          },
+          history,
+          count: history.length,
         });
-      } catch (err) {
-        console.error("❌ Failed to fetch remote match requests:", err);
-        return reply.status(500).send({ error: "Internal Server Error" });
+      } catch (error) {
+        console.error("❌ Failed to get game history:", error);
+        return reply.status(500).send({ error: "Failed to get game history" });
       }
     },
   );
-  /* <-- List of all remote matches the user has played. --> */
-}
 
-/*
-| Method | Route                    | Description                                        |
-|--------|--------------------------|----------------------------------------------------|
-| POST   | /remote/request          | Send remote match request to another user          |
-| POST   | /remote/respond          | Accept or decline a match request                  |
-| POST   | /remote/:id/submit       | Submit score result for a remote game              |
-| GET    | /remote                  | List all remote match requests (sent/received)     |
-*/
+  /* <-- Leave current game --> */
+  app.post(
+    "/leave",
+    {
+      preHandler: [app.authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user: any = request.user;
+
+      try {
+        const gameId = gameService.isPlayerInGame(user.id);
+        if (!gameId) {
+          return reply.status(400).send({ error: "Not in any game" });
+        }
+
+        await gameService.forceEndGame(
+          gameId,
+          `Player ${user.username} left the game`,
+        );
+
+        return reply.send({
+          message: "Successfully left the game",
+          gameId,
+        });
+      } catch (error) {
+        console.error("❌ Failed to leave game:", error);
+        return reply.status(500).send({ error: "Failed to leave game" });
+      }
+    },
+  );
+}
