@@ -1,0 +1,14 @@
+[2025-06-03T11:58:24.253Z] ERROR: Failed to start server
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+Stack: Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at doListen (node:net:2139:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21)
+[2025-06-03T12:21:10.686Z] ERROR: Failed to start server
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+Stack: Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at doListen (node:net:2139:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21)

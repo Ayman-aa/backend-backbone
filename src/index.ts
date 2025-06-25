@@ -16,6 +16,7 @@ import Table from 'cli-table3'; // Import the Table constructor
 import jwtPlugin from "./plugins/jwt";
 import oauth2Plugin from "./plugins/oauth2";
 
+<<<<<<< HEAD
 import userRoutes from "./modules/users/profile.routes";
 import usersRoutes from "./modules/users/users.routes";
 import authRoutes from "./modules/auth/auth.routes";
@@ -25,14 +26,28 @@ import chatRoutes from "./modules/chats/chats.routes";
 import local_1v1 from "./modules/game/game.local-1v1.routes";
 import remote from "./modules/game/game.remote-1v1.routes";
 import tournamentRoutes from "./modules/game/game.tournaments.routes"
+=======
+import userRoutes from './modules/users/profile.routes';
+import usersRoutes from './modules/users/users.routes';
+import authRoutes from './modules/auth/auth.routes';
+import friendsRoutes from './modules/friends/friends.routes';
+import chatRoutes from './modules/chats/chats.routes';
+import blocksRoutes from './modules/blocks/blocks.routes';
+import healthRoutes from './modules/health/health.routes';
+>>>>>>> ayman
 
 import { fastifyStatic } from "@fastify/static";
 import path from "path";
 
 import { Server } from "http";
 import { setupSocketIO } from "./modules/socket/socket";
+import { errorHandler, notFoundHandler, requestLogger } from "./middlewares/errorHandling.middleware";
+import { logger } from "./utils/logger";
+import { monitoringService } from "./services/monitoring.service";
 
-const app = Fastify();
+const app = Fastify({
+  logger: false // Using custom logger
+});
 
 app.register(routesPlugin);
 
@@ -70,7 +85,32 @@ app.register(cookie, { secret: env.COOKIE_SECRET });
 app.register(jwtPlugin);
 app.register(oauth2Plugin);
 
+// Register error handling and logging
+app.setErrorHandler(errorHandler);
+app.setNotFoundHandler(notFoundHandler);
+
+// Add request monitoring middleware
+app.addHook('onRequest', async (request, reply) => {
+  monitoringService.incrementRequestCount();
+  await requestLogger(request, reply);
+});
+
+app.addHook('onResponse', async (request, reply) => {
+  const startTime = (request as any).startTime || Date.now();
+  const duration = Date.now() - startTime;
+  monitoringService.addResponseTime(duration);
+  
+  if (reply.statusCode >= 400) {
+    monitoringService.incrementErrorCount();
+  }
+});
+
+app.addHook('onRequest', async (request, reply) => {
+  (request as any).startTime = Date.now();
+});
+
 // Register routes
+<<<<<<< HEAD
 app.register(userRoutes, { prefix: "/profile" });
 app.register(usersRoutes, { prefix: "/users" });
 app.register(authRoutes,  { prefix: "/auth" });
@@ -81,6 +121,15 @@ app.register(local_1v1, { prefix: "/game" });
 app.register(remote, { prefix: "/game/remote" });
 app.register(tournamentRoutes, { prefix: "/game/tournaments" });
 
+=======
+app.register(userRoutes, { prefix: '/profile' });
+app.register(usersRoutes, { prefix: '/users' });
+app.register(authRoutes, { prefix: '/auth' });
+app.register(friendsRoutes, { prefix: '/friends' });
+app.register(chatRoutes, { prefix: '/chats' });
+app.register(blocksRoutes, { prefix: '/blocks' });
+app.register(healthRoutes, { prefix: '/health' });
+>>>>>>> ayman
 
 const start = async () => {
   try {
@@ -95,6 +144,7 @@ const start = async () => {
       port: 3000,
       host: "0.0.0.0", // Bih kaywliw les connexions de l'extérieur possible.
     });
+<<<<<<< HEAD
     
     const url = "http://localhost:3000";
     const status = chalk.green.bold("✅ ONLINE");
@@ -111,14 +161,29 @@ const start = async () => {
     console.log(chalk.bold(`${status} ${chalk.bgBlack.whiteBright('🌐')}`));
     console.log(chalk.white(message));
     console.log(chalk.gray(`\n${'-'.repeat(message.length + 10)}\n`));
+=======
+
+    logger.info("✅ HTTPS + WebSocket server is running on http://localhost:3000");
+    console.log("✅ HTTPS + WebSocket server is running on http://localhost:3000");
+    console.log(app.printRoutes());
+
+    // Log system startup
+    logger.info('Server started successfully', {
+      port: 3000,
+      environment: process.env.NODE_ENV || 'development',
+      routes: app.printRoutes({ includeHooks: false, commonPrefix: false })
+    });
+
+>>>>>>> ayman
   } catch (err) {
-    app.log.error(err);
+    logger.error('Failed to start server', err as Error);
     process.exit(1);
   }
 };
 
 start();
 
+<<<<<<< HEAD
 
 
 // --- Enhanced Route Display Interfaces ---
@@ -301,3 +366,17 @@ function getMethodColor(method: string): (text: string) => string {
 | Route registration         | Mounts all feature modules with prefixes                     |
 | start()                    | Prepares server, sets up Socket.IO, starts listening         |
 */
+=======
+// Graceful shutdown
+process.on('SIGINT', () => {
+  logger.info('Received SIGINT, shutting down gracefully');
+  monitoringService.shutdown();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('Received SIGTERM, shutting down gracefully');
+  monitoringService.shutdown();
+  process.exit(0);
+});
+>>>>>>> ayman

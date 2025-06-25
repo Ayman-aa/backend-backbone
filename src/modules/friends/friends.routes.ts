@@ -1,9 +1,14 @@
 import { FastifyInstance } from "fastify";
-import { prisma } from "../../utils/prisma"
+import { prisma } from "../../utils/prisma";
+import { 
+  friendRequestRateLimiter, 
+  generalApiRateLimiter 
+} from "../../middlewares/rateLimiting.middleware";
 
 export default async function friendsRoutes(app: FastifyInstance) {
   
   /* <-- /friends/request route --> */
+<<<<<<< HEAD
   app.post("/request", { preHandler: [app.authenticate], 
     schema: {
       body: {
@@ -16,6 +21,14 @@ export default async function friendsRoutes(app: FastifyInstance) {
       }
     } 
    }, async (req, reply) => {
+=======
+  app.post("/request", { 
+    preHandler: [
+      app.authenticate, 
+      friendRequestRateLimiter.createMiddleware()
+    ] 
+  }, async (req, reply) => {
+>>>>>>> ayman
     const { toUserId } = req.body as { toUserId: number };
     const user: any = req.user;
     const userId = user.id;
@@ -67,7 +80,12 @@ export default async function friendsRoutes(app: FastifyInstance) {
   /* <-- /friends/request route --> */
 
   /* <-- /friends/accept route --> */
-  app.post("/accept", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/accept", { 
+    preHandler: [
+      app.authenticate, 
+      generalApiRateLimiter.createMiddleware()
+    ] 
+  }, async (req, reply) => {
     const user: any = req.user;
     const { friendshipId }  = req.body as { friendshipId: number };
     
@@ -94,7 +112,12 @@ export default async function friendsRoutes(app: FastifyInstance) {
   /* <-- /friends/accept route --> */
   
   /* <-- /friends/decline route --> */
-  app.post("/decline", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/decline", { 
+    preHandler: [
+      app.authenticate, 
+      generalApiRateLimiter.createMiddleware()
+    ] 
+  }, async (req, reply) => {
     const user: any = req.user;
     const { friendshipId } = req.body as { friendshipId: number };
     
@@ -121,7 +144,12 @@ export default async function friendsRoutes(app: FastifyInstance) {
   /* <-- /friends/decline route --> */
   
   /* <-- /friends/list route --> */
-  app.get("/list", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.get("/list", { 
+    preHandler: [
+      app.authenticate, 
+      generalApiRateLimiter.createMiddleware()
+    ] 
+  }, async (req, reply) => {
     const user: any = req.user;
     
     try {
@@ -169,7 +197,12 @@ export default async function friendsRoutes(app: FastifyInstance) {
   /* <-- /friends/list route --> */
   
   /* <-- /friends/pending route --> */
-  app.get("/pending", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.get("/pending", { 
+    preHandler: [
+      app.authenticate, 
+      generalApiRateLimiter.createMiddleware()
+    ] 
+  }, async (req, reply) => {
     const user: any = req.user;
       
     try {
@@ -203,7 +236,12 @@ export default async function friendsRoutes(app: FastifyInstance) {
   /* <-- /friends/pending route --> */
   
   /* <-- /friends/sent route --> */
-  app.get("/sent", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.get("/sent", { 
+    preHandler: [
+      app.authenticate, 
+      generalApiRateLimiter.createMiddleware()
+    ] 
+  }, async (req, reply) => {
     const user: any = req.user;
       
     try {
