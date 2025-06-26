@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "../../utils/prisma";
 import { gameService } from "../../services/GameService";
-import { io } from "../socket/socket";
+import { io, isUserOnline } from "../socket/socket";
 
 interface SendInviteRequest {
   Body: {
@@ -50,7 +50,7 @@ export default async function remoteInviteRoutes(app: FastifyInstance) {
     async (request: FastifyRequest<SendInviteRequest>, reply: FastifyReply) => {
       const user: any = request.user;
       const { recipientId } = request.body;
-
+  
       try {
         // Check if user is trying to invite themselves
         if (user.id === recipientId) {
@@ -58,19 +58,26 @@ export default async function remoteInviteRoutes(app: FastifyInstance) {
             error: "Cannot invite yourself to a game",
           });
         }
-
+  
         // Check if recipient exists
         const recipient = await prisma.user.findUnique({
           where: { id: recipientId },
           select: { id: true, username: true },
         });
-
+  
         if (!recipient) {
           return reply.status(404).send({
             error: "Recipient not found",
           });
         }
-
+  
+        // Check if recipient is online
+        if (!isUserOnline(recipientId)) {
+          return reply.status(400).send({
+            error: "Recipient is not online",
+          });
+        }
+  
         // Check if there's already a pending invitation between these users
         const existingInvite = await prisma.remoteMatchRequest.findFirst({
           where: {
@@ -88,29 +95,29 @@ export default async function remoteInviteRoutes(app: FastifyInstance) {
             ],
           },
         });
-
+  
         if (existingInvite) {
           return reply.status(409).send({
             error: "There is already a pending invitation between you and this user",
           });
         }
-
+  
         // Check if either user is already in a game
         const requesterInGame = gameService.isPlayerInGame(user.id);
         const recipientInGame = gameService.isPlayerInGame(recipientId);
-
+  
         if (requesterInGame) {
           return reply.status(400).send({
             error: "You are already in a game",
           });
         }
-
+  
         if (recipientInGame) {
           return reply.status(400).send({
             error: "The recipient is already in a game",
           });
         }
-
+  
         // Create the invitation
         const invitation = await prisma.remoteMatchRequest.create({
           data: {
@@ -127,9 +134,44 @@ export default async function remoteInviteRoutes(app: FastifyInstance) {
             },
           },
         });
-
-        // Send real-time notification to recipient
-        if (io) {
+  
+        // Set up automatic cleanup after 10 seconds
+        setTimeout(async () => {
+          try {
+            const inviteToDelete = await prisma.remoteMatchRequest.findUnique({
+              where: { id: invitation.id },
+            });
+            
+            // Only delete if it's still pending (not accepted/declined)
+            if (inviteToDelete && inviteToDelete.status === "pending") {
+              await prisma.remoteMatchRequest.delete({
+                where: { id: invitation.id },
+              });
+              
+              // Notify both users that the invitation expired
+              if (io) {
+                io.to(`user_${user.id}`).emit("game:invite_expired", {
+                  inviteId: invitation.id,
+                  message: "Your game invitation expired",
+                });
+                
+                if (isUserOnline(recipientId)) {
+                  io.to(`user_${recipientId}`).emit("game:invite_expired", {
+                    inviteId: invitation.id,
+                    message: "Game invitation expired",
+                  });
+                }
+              }
+              
+              console.log(`⏰ Game invitation ${invitation.id} expired and removed`);
+            }
+          } catch (error) {
+            console.error("❌ Failed to cleanup expired invitation:", error);
+          }
+        }, 10000); // 10 seconds
+  
+        // Send real-time notification to recipient (only if they're online)
+        if (io && isUserOnline(recipientId)) {
           io.to(`user_${recipientId}`).emit("game:invite_received", {
             inviteId: invitation.id,
             from: {
@@ -137,9 +179,12 @@ export default async function remoteInviteRoutes(app: FastifyInstance) {
               username: user.username,
             },
             message: `${user.username} invited you to play Pong!`,
+            expiresIn: 10000, // 10 seconds in milliseconds
           });
+          
+          console.log(`🎮 Game invitation sent to online user ${recipient.username} (${recipientId})`);
         }
-
+  
         return reply.send({
           message: "Game invitation sent successfully",
           invitation: {

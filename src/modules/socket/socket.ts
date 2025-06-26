@@ -16,6 +16,23 @@ interface AuthenticatedSocket extends Socket {
 // Store rate limiters for each connected user
 const userLimiters = new Map<number, RateLimiter>();
 
+// This Map will hold the state of every user currently connected to the server.
+// Export it so it can be used in other modules
+export const onlineUsers = new Map<
+  number,
+  { userId: number; username: string; socketId: string }
+>();
+
+// Helper function to check if a user is online (exported for use in routes)
+export function isUserOnline(userId: number): boolean {
+  return onlineUsers.has(userId);
+}
+
+// Helper function to get online user info (exported for use in routes)
+export function getOnlineUser(userId: number) {
+  return onlineUsers.get(userId);
+}
+
 export function setupSocketIO(server: HttpServer) {
   io = new SocketIOServer(server, {
     cors: {
@@ -50,40 +67,31 @@ export function setupSocketIO(server: HttpServer) {
     }
   });
 
-  // Rate limiting middleware - after authentication
+  // Rate limiting middleware
   io.use(async (socket: AuthenticatedSocket, next) => {
     const userId = socket.userId;
-
     if (!userId) {
       return next(new Error("Rate limiting error: User not authenticated"));
     }
-
-    // Create a new rate limiter for this user if one doesn't exist
     if (!userLimiters.has(userId)) {
       userLimiters.set(
         userId,
         new RateLimiter({
-          tokensPerInterval: 10, // 10 events
-          interval: "second", // per second
-          fireImmediately: true, // Don't wait, return immediately if rate limited
+          tokensPerInterval: 10,
+          interval: "second",
+          fireImmediately: true,
         }),
       );
     }
-
     const limiter = userLimiters.get(userId);
-
     if (!limiter) {
       return next(new Error("Rate limiting error: Failed to create limiter"));
     }
-
     try {
-      // Try to remove a token (make a request)
       const remainingRequests = await limiter.removeTokens(1);
-
       if (remainingRequests < 0) {
         return next(new Error("Rate limit exceeded: Too many requests"));
       }
-
       next();
     } catch (err) {
       return next(new Error("Rate limiting error: Internal error"));
@@ -93,11 +101,31 @@ export function setupSocketIO(server: HttpServer) {
   // Initialize game socket
   initializeGameSocket(io);
 
+  // Helper function to broadcast the complete, updated list of online users.
+  const broadcastOnlineUsers = () => {
+    const usersList = Array.from(onlineUsers.values());
+    // The event is 'online_users_list'
+    io.emit("online_users_list", usersList);
+    console.log("📢 Broadcasted updated online users list to all clients:", usersList.map(u => u.username));
+  };
+
   io.on("connection", (socket: AuthenticatedSocket) => {
     console.log(
       `🟢 User ${socket.username} (${socket.userId}) connected:`,
       socket.id,
     );
+
+    // Add the newly connected user to our central list
+    if (socket.userId && socket.username) {
+      onlineUsers.set(socket.userId, {
+        userId: socket.userId,
+        username: socket.username,
+        socketId: socket.id,
+      });
+    }
+
+    // Broadcast the new, complete list to EVERYONE.
+    broadcastOnlineUsers();
 
     // Join user to their own room for direct messaging
     socket.join(`user_${socket.userId}`);
@@ -105,15 +133,6 @@ export function setupSocketIO(server: HttpServer) {
     // Setup game events for this socket
     gameSocket.setupGameEvents(socket);
 
-    // Notify friends of online status
-    socket.broadcast.emit("user_status", {
-      userId: socket.userId,
-      username: socket.username,
-      isOnline: true,
-    });
-
-    // Note: Message sending is now handled by the API endpoint to prevent duplicates
-    // Socket.IO is used only for real-time delivery which is handled by the API
     socket.on("private_message", (_data) => {
       console.log(
         "Direct socket message received - this should not be used. Use API endpoint instead.",
@@ -126,29 +145,14 @@ export function setupSocketIO(server: HttpServer) {
         socket.id,
       );
 
-      // Clean up the rate limiter when user disconnects
+      // Clean up the user from the central list and the rate limiter map
       if (socket.userId) {
+        onlineUsers.delete(socket.userId);
         userLimiters.delete(socket.userId);
       }
 
-      // Notify friends of offline status
-      socket.broadcast.emit("user_status", {
-        userId: socket.userId,
-        username: socket.username,
-        isOnline: false,
-      });
+      // Broadcast the updated list to all remaining clients.
+      broadcastOnlineUsers();
     });
   });
 }
-
-/*
-| Function        | Description                                                   |
-| ----------------|---------------------------------------------------------------|
-| setupSocketIO   | - Validates JWT on connection                                 |
-|                 | - Rate limits users to 10 events per second                   |
-|                 | - Sets up remote game events for multiplayer pong             |
-|                 | - Joins users to private rooms for messaging                  |
-|                 | - Emits online/offline status to others                       |
-|                 | - Integrates GameSocket for real-time game functionality      |
-|                 | - Rejects direct message sending via socket (use API instead) |
-*/
