@@ -1,12 +1,12 @@
-import fp from 'fastify-plugin';
-import oauth2 from '@fastify/oauth2';
-import { FastifyInstance } from 'fastify'
-import { env } from '../config/env'
+import fp from "fastify-plugin";
+import oauth2 from "@fastify/oauth2";
+import { FastifyInstance } from "fastify";
+import { env } from "../config/env";
 
 export default fp(async function (fastify: FastifyInstance) {
   fastify.register(oauth2, {
-    name: 'googleOAuth2',
-    scope: ['profile', 'email'],
+    name: "googleOAuth2",
+    scope: ["profile", "email"],
     credentials: {
       client: {
         id: env.GOOGLE_CLIENT_ID as string,
@@ -17,7 +17,7 @@ export default fp(async function (fastify: FastifyInstance) {
     startRedirectPath: '/auth/google',
     callbackUri: 'http://localhost:3000/auth/google/callback'
   });
-})
+});
 
 /*
 | Plugin         | Description                                                        |
