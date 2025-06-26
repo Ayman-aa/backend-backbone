@@ -175,7 +175,7 @@ export default async function authRoutes(app: FastifyInstance) {
           action: logged ? "login" : "register",
         });
       } catch (err: any) {
-        app.log.error("Authentication error:", { email, error: err.message });
+        console.error("Authentication error:" + email + ' ' +  err.message);
         return reply.status(500).send({
           statusCode: 500,
           error: "Authentication service unavailable",

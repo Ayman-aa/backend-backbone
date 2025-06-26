@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "prisma": "npx prisma generate &&  npx prisma migrate dev --name init",
     "dev": "nodemon --watch 'src/**/*' -e ts --exec 'tsc && node dist/index.js'",
     "watch": "tsc-watch --onSuccess 'node dist/index.js'"
   },
