@@ -1,91 +1,157 @@
-```ts
-🚀 API ROUTES OVERVIEW
-═════════════════════════════════════════════════════════
+```C
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/select.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-📁 🎮 GAMING
+int max =0;
+int client[1024]={-1};
+char *message[1024];
 
-POST /game/local              [A] - Local Game Record
-GET  /game/local              [A] - Local Stats
-POST /game/remote/request     [A] - Challenge Enemy
-POST /game/remote/respond     [A] - Accept/Decline
-GET  /game/remote             [A] - Match History
-POST /game/remote/:id/submit  [A] - Submit Score
-POST /game/tournaments/create [A] - Create Tournament
-POST /game/tournaments/submit-score [A] - Tournament Score
-GET  /game/tournaments/history [A] - Tournament Stats
+char buffer_write[4095];
+char buffer_read[4095];
 
+fd_set cur,cur_write,cur_read;
 
-📁 👤 PROFILE
+void ft_error(){
+    write(2,"Fatal error\n",strlen("Fatal error\n"));
+    exit(1);
+}
 
-GET   /profile/me             [A] - Self Inspection
-GET   /profile/:id            [A] - Stalk Others
-PATCH /profile/username       [A] - Identity Change
-PATCH /profile/avatar         [A] - Face Lift (Rate Limited)
+void ft_send(int fd, char *str){
+    for(int i =0; i <=max;i++){
+        if(client[i] != -1 && i != fd && FD_ISSET(i,&cur_write)){
+            send(i,str,strlen(str),0);
+        }
+    }
+}
 
+int extract_message(char **buf, char **msg)
+{
+ char *newbuf;
+ int i;
 
-📁 👥 USERS
+ *msg = 0;
+ if (*buf == 0)
+  return (0);
+ i = 0;
+ while ((*buf)[i])
+ {
+  if ((*buf)[i] == '\n')
+  {
+   newbuf = (char*)calloc(1, sizeof(*newbuf) * (strlen(*buf + i + 1) + 1));
+   if (newbuf == 0)
+    return (-1);
+   strcpy(newbuf, *buf + i + 1);
+   *msg = *buf;
+   (*msg)[i + 1] = 0;
+   *buf = newbuf;
+   return (1);
+  }
+  i++;
+ }
+ return (0);
+}
 
-GET /users/                   [A] - Browse Humans
-GET /users/search             [A] - Hunt Specific Targets
+char *str_join(char *buf, char *add)
+{
+ char *newbuf;
+ int  len;
 
+ if (buf == 0)
+  len = 0;
+ else
+  len = strlen(buf);
+ newbuf = (char*)malloc(sizeof(*newbuf) * (len + strlen(add) + 1));
+ if (newbuf == 0)
+  return (0);
+ newbuf[0] = 0;
+ if (buf != 0)
+  strcat(newbuf, buf);
+ free(buf);
+ strcat(newbuf, add);
+ return (newbuf);
+}
 
-📁 💬 MESSAGING
-
-POST /chats/send              [A] - Send Message
-POST /chats/thread            [A] - Get Conversation
-GET  /chats/conversations     [A] - Chat List
-POST /chats/mark-read         [A] - Mark as Read
-
-
-📁 📁 STATIC FILES
-
-  GET  /uploads/*         [P]
-
-
-📁 🔐 AUTHENTICATION
-
-POST /auth/authenticate        [P] - Login/Register (The Gateway)
-POST /auth/refresh             [P] - Token Renewal (Stay Alive)
-POST /auth/fetch-token         [P] - Token Retrieval
-POST /auth/logout              [P] - Clean Exit
-GET  /auth/google/callback     [P] - OAuth Magic
-GET  /auth/validate            [P] - Token Verification
-POST /auth/verify-login-2fa    [P] - 2FA Login Gate
-POST /auth/generate-2fa        [A] - Code Generation
-POST /auth/verify-2fa          [A] - Code Verification  
-POST /auth/resend-2fa          [A] - Code Resend
-POST /auth/enable-2fa          [A] - Enable 2FA
-POST /auth/disable-2fa         [A] - Disable 2FA
-
-
-📁 🤝 FRIENDS
-
-POST /friends/request         [A] - Send Friend Request
-POST /friends/accept          [A] - Accept Request
-POST /friends/decline         [A] - Reject Request
-GET  /friends/list            [A] - View Squad
-GET  /friends/pending         [A] - Incoming Requests
-GET  /friends/sent            [A] - Outgoing Requests
-POST /friends/block           [A] - Ban Hammer
-POST /friends/unblock         [A] - Forgiveness
-GET  /friends/blocked         [A] - Hall of Shame
-
-═════════════════════════════════════════════════════════
-📊 SUMMARY: 42 routes total
-   [A]uth: 33 | [P]ublic: 9 | 1 cols
-═════════════════════════════════════════════════════════
-
-
-           _ _        _        _
-      ___ | | | _   _| | _ __ (_) ___
-     / _ \| | || | | | || '__|| |/ __|
-    |  __/| | || |_| | || |   | |\__ \
-     \___||_|_| \__,_|_||_|   |_||___/
-
-
-✅ ONLINE 🌐
-Server is up and listening on: http://localhost:3000
-
----------------------------------------------------------
-
+int main(int ac,char **av){
+    if(ac == 2){
+        int sockfd;
+        struct sockaddr_in servaddr; 
+    
+        sockfd = socket(AF_INET, SOCK_STREAM, 0); 
+        if (sockfd == -1) { 
+            ft_error(); 
+        } 
+        bzero(&servaddr, sizeof(servaddr)); 
+    
+        servaddr.sin_family = AF_INET; 
+        servaddr.sin_addr.s_addr = htonl(2130706433); //127.0.0.1
+        servaddr.sin_port = htons(atoi(av[1])); 
+      
+        if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0) { 
+            ft_error(); 
+        } 
+      
+        if (listen(sockfd, 128) != 0) {
+            ft_error();
+        }
+        FD_SET(sockfd,&cur);
+        max = sockfd;
+        int index = 0;
+        while(1){
+            cur_read = cur_write = cur;
+            if(select(max+1,&cur_read,&cur_write,NULL,NULL)<0){
+                continue;
+            }
+            for(int fd=0;fd <=max;fd++){
+                if(FD_ISSET(fd,&cur_read)){
+                    if(fd == sockfd){
+                        int newClient = accept(sockfd,NULL,NULL);
+                        if(newClient<=0){
+                            continue;
+                        }
+                        FD_SET(newClient,&cur);
+                        client[newClient]=index++;
+                        message[newClient]=(char*)malloc(1);
+                        message[newClient][0]=0;
+                        if(newClient > max){
+                            max= newClient;
+                        }
+                        char str[100];
+                        sprintf(str,"server: client %d just arrived\n",index-1);
+                        ft_send(newClient,str);
+                    }else{
+                        int len=recv(fd,buffer_read,4094,0);
+                        if(len<=0){
+                            FD_CLR(fd,&cur);
+                            char str[100];
+                            sprintf(str,"server: client %d just left\n",client[fd]);
+                            ft_send(fd,str);
+                            client[fd]=-1;
+                            close(fd);
+                        }else{
+                            buffer_read[len]=0;
+                            message[fd]=str_join(message[fd],buffer_read);
+                            char *tmp;
+                            while(extract_message(&message[fd],&tmp)){
+                                sprintf(buffer_write,"client %d: ",client[fd]);
+                                ft_send(fd,buffer_write);
+                                ft_send(fd,tmp);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }else{
+        write(2,"Wrong number of arguments\n",strlen("Wrong number of arguments\n"));
+        exit(1);
+    }
+}
 ```
